@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>ISS Tracker - Rebuild estable</title>
+
+  <script src="https://unpkg.com/globe.gl"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.1.3/satellite.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #000;
+      color: #fff;
+    }
+
+    #globeViz {
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+    }
+
+    #menu-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      cursor: pointer;
+      color: #fff;
+      font-size: 28px;
+      background: rgba(0, 0, 0, 0.62);
+      padding: 5px 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      transition: background 0.2s;
+      user-select: none;
+    }
+    #menu-btn:hover { background: rgba(0, 0, 0, 0.9); }
+
+    #side-menu {
+      position: absolute;
+      top: 0;
+      left: -340px;
+      width: 318px;
+      height: 100vh;
+      box-sizing: border-box;
+      overflow-y: auto;
+      background: rgba(15, 15, 15, 0.96);
+      backdrop-filter: blur(10px);
+      z-index: 99;
+      transition: left 0.28s ease;
+      padding: 82px 0 28px 0;
+      color: white;
+      box-shadow: 2px 0 15px rgba(0,0,0,0.55);
+    }
+    #side-menu.open { left: 0; }
+
+    .menu-section {
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 14px 18px 16px 22px;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 10px;
+      color: #f4f4f4;
+    }
+    .small-note {
+      color: rgba(255,255,255,0.58);
+      font-size: 12px;
+      line-height: 1.35;
+      margin-top: 8px;
+    }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .map-icon {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: white;
+      cursor: pointer;
+      padding: 10px 6px;
+      border-radius: 6px;
+      font-size: 13px;
+      text-align: center;
+      transition: 0.18s;
+      user-select: none;
+    }
+    .map-icon:hover { background: rgba(255,255,255,0.13); }
+    .map-icon.active {
+      border-color: #00aaff;
+      box-shadow: inset 0 0 0 1px rgba(0,170,255,0.45), 0 0 12px rgba(0,170,255,0.18);
+      background: rgba(0,170,255,0.16);
+    }
+
+    .menu-item {
+      padding: 15px 22px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 15px;
+      transition: 0.18s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+    .menu-item:hover {
+      background: rgba(255,255,255,0.1);
+      padding-left: 28px;
+      border-left: 4px solid #00aaff;
+    }
+    .menu-item.disabled {
+      opacity: 0.38;
+      cursor: default;
+    }
+    .menu-item.disabled:hover {
+      background: transparent;
+      padding-left: 22px;
+      border-left: none;
+    }
+
+    #statusPanel {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      z-index: 60;
+      max-width: 420px;
+      background: rgba(0,0,0,0.62);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: rgba(255,255,255,0.88);
+      font-size: 12px;
+      line-height: 1.35;
+      pointer-events: none;
+    }
+    #issReadout { color: #9ee7ff; margin-top: 3px; }
+    #mapStatus { color: rgba(255,255,255,0.7); margin-top: 3px; }
+
+    .iss-marker {
+      font-size: 38px;
+      line-height: 38px;
+      cursor: pointer;
+      pointer-events: auto;
+      user-select: none;
+      filter: drop-shadow(0 0 8px #00aaff) drop-shadow(0 0 16px #00aaff);
+      transform: translate(-50%, -50%);
+    }
+
+    .modal {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20, 20, 20, 0.96);
+      backdrop-filter: blur(10px);
+      padding: 24px;
+      color: white;
+      z-index: 200;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 28px rgba(0,0,0,0.55);
+    }
+    .modal.active { display: block; }
+    .close-btn {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+      color: #999;
+      user-select: none;
+    }
+    .close-btn:hover { color: #fff; }
+
+    input[type="text"] {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin: 12px 0;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: white;
+      border-radius: 5px;
+    }
+    button.action-btn {
+      background: #00aaff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    button.action-btn:hover { background: #0088cc; }
+
+    .result-card {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #dff7ff;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    #errorBox {
+      display: none;
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 500;
+      max-width: 520px;
+      background: rgba(70, 0, 0, 0.88);
+      border: 1px solid rgba(255, 120, 120, 0.6);
+      color: #fff;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu-btn" onclick="toggleMenu()">☰</div>
+
+  <div id="side-menu">
+    <div class="menu-section">
+      <div class="section-title">🌍 Apariencia del Globo</div>
+      <div class="map-grid">
+        <div class="map-icon active" data-map="satellite" onclick="changeMapType('satellite')">🛰️ Satélite</div>
+        <div class="map-icon" data-map="political" onclick="changeMapType('political')">🗺️ Político</div>
+        <div class="map-icon" data-map="relief" onclick="changeMapType('relief')">⛰️ Relieve</div>
+        <div class="map-icon" data-map="night" onclick="changeMapType('night')">🌃 Nocturno</div>
+      </div>
+      <div id="mapStatus" class="small-note">Satélite activo.</div>
+    </div>
+
+    <div class="menu-item" onclick="toggleClouds()" id="btn-clouds">☁️ Nubes: DESACTIVADAS</div>
+    <div class="menu-item" onclick="toggleBorders()" id="btn-borders">🗺️ Fronteras: DESACTIVADO</div>
+    <div class="menu-item" onclick="toggleOrbit()" id="btn-orbit">🔴🟢 Órbita ISS: DESACTIVADA</div>
+    <div class="menu-item" onclick="centerOnISS()">🚀 Centrar en la ISS</div>
+    <div class="menu-item" onclick="openModal('locationModal')">📍 Paso por Barcelona</div>
+  </div>
+
+  <div id="globeViz"></div>
+
+  <div id="statusPanel">
+    <div><b>ISS Tracker</b> · versión reconstruida estable</div>
+    <div id="issReadout">Cargando posición de la ISS…</div>
+    <div id="mapAttribution">Esri World Imagery · NASA Blue Marble · Globe.gl</div>
+  </div>
+
+  <div id="locationModal" class="modal">
+    <span class="close-btn" onclick="closeModals()">✖</span>
+    <h3 style="margin-top:0;">Próximo paso de la ISS</h3>
+    <input type="text" id="cityInput" value="Barcelona, España" placeholder="Ej: Barcelona, España">
+    <button class="action-btn" onclick="calculateVisiblePass()">Calcular</button>
+    <div id="passResult" class="result-card" style="display:none;"></div>
+  </div>
+
+  <div id="errorBox"></div>
+
+  <script>
+    'use strict';
+
+    const ISS_NORAD_ID = 25544;
+    const EARTH_RADIUS_KM = 6371;
+    const ORBIT_BACK_MINUTES = 46;
+    const ORBIT_FORWARD_MINUTES = 46;
+    const ORBIT_STEP_SECONDS = 30;
+    const ORBIT_REFRESH_MS = 15000;
+    const ISS_REFRESH_MS = 3000;
+    const TLE_REFRESH_MS = 10 * 60 * 1000;
+    const MIN_VISIBLE_ELEVATION_DEG = 10;
+
+    const EMBEDDED_TLE = [
+      '1 25544U 98067A   26139.48801487  .00005163  00000+0  10086-3 0  9993',
+      '2 25544  51.6327  82.1724 0007543  75.4903 284.6922 15.49271759567301'
+    ];
+
+    const MAPS = {
+      satellite: {
+        label: 'Satélite',
+        image: 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
+        bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+        tileUrl: (x, y, z) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+        maxZoom: 23,
+        status: 'Satélite activo. Nubes disponibles en este modo.',
+        attribution: 'Esri World Imagery · NASA Blue Marble · Globe.gl'
+      },
+      political: {
+        label: 'Político',
+        image: 'https://unpkg.com/three-globe/example/img/earth-water.png',
+        bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+        tileUrl: (x, y, z) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`,
+        maxZoom: 23,
+        status: 'Mapa político/callejero activo.',
+        attribution: 'Esri World Street Map · Natural Earth · Globe.gl'
+      },
+      relief: {
+        label: 'Relieve',
+        image: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+        bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+        tileUrl: (x, y, z) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}`,
+        maxZoom: 18,
+        status: 'Relieve/topográfico activo.',
+        attribution: 'Esri World Topographic Map · Globe.gl'
+      },
+      night: {
+        label: 'Nocturno',
+        image: 'https://unpkg.com/three-globe/example/img/earth-night.jpg',
+        bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+        tileUrl: null,
+        maxZoom: 8,
+        status: 'Mapa nocturno activo. Textura global de luces nocturnas.',
+        attribution: 'Earth night texture · Globe.gl'
+      }
+    };
+
+    const CLOUD_TEXTURE_URL = 'https://clouds.matteason.co.uk/images/8192x4096/earth.jpg';
+
+    let world = null;
+    let currentMapType = 'satellite';
+    let cloudsEnabled = false;
+    let showingBorders = false;
+    let isOrbitVisible = false;
+    let hasAutoCenteredOnIss = false;
+
+    let issData = null;
+    let tleSatrec = null;
+    let tleLoadedAt = 0;
+    let orbitPaths = [];
+    let borderPaths = [];
+    let countryPolygons = [];
+    let observerPoint = null;
+    let observerLabel = null;
+    let visibilityPaths = [];
+    let orbitTimer = null;
+    let issTimer = null;
+
+    window.addEventListener('error', function (event) {
+      showError('Error JavaScript: ' + event.message + '\n' + (event.filename || '') + ':' + (event.lineno || ''));
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      showError('Promesa rechazada: ' + (event.reason && event.reason.message ? event.reason.message : String(event.reason)));
+    });
+
+    document.addEventListener('DOMContentLoaded', initApp);
+
+    function initApp() {
+      try {
+        if (typeof Globe !== 'function') throw new Error('No se ha cargado globe.gl. Revisa la conexión a internet.');
+        if (typeof satellite === 'undefined') throw new Error('No se ha cargado satellite.js. Revisa la conexión a internet.');
+
+        world = Globe()(document.getElementById('globeViz'))
+          .globeImageUrl(MAPS.satellite.image)
+          .bumpImageUrl(MAPS.satellite.bump)
+          .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+          .showAtmosphere(true)
+          .atmosphereColor('#3a6680')
+          .atmosphereAltitude(0.15)
+          .htmlLat('lat')
+          .htmlLng('lng')
+          .htmlAltitude('htmlAlt')
+          .htmlTransitionDuration(0)
+          .htmlElement(createHtmlMarker)
+          .pointLat('lat')
+          .pointLng('lng')
+          .pointAltitude('alt')
+          .pointRadius('radius')
+          .pointColor('color')
+          .pointsTransitionDuration(0)
+          .labelLat('lat')
+          .labelLng('lng')
+          .labelAltitude('alt')
+          .labelText('text')
+          .labelSize('size')
+          .labelColor('color')
+          .labelResolution(2)
+          .labelIncludeDot(true)
+          .labelDotRadius(0.12)
+          .labelsTransitionDuration(0)
+          .pathPoints('coords')
+          .pathPointLat('lat')
+          .pathPointLng('lng')
+          .pathPointAlt('alt')
+          .pathResolution(1)
+          .pathTransitionDuration(0)
+          .pathDashAnimateTime(0);
+
+        configureControls();
+        applyMapAppearance();
+        loadCountryData();
+        startIssTracking();
+
+        window.addEventListener('resize', function () {
+          if (world) world.width(window.innerWidth).height(window.innerHeight);
+        });
+      } catch (err) {
+        showError('No se pudo inicializar el tracker: ' + err.message);
+        throw err;
+      }
+    }
+
+    function configureControls() {
+      try {
+        const controls = world.controls();
+        controls.enableDamping = false;
+        controls.rotateSpeed = 0.45;
+        controls.zoomSpeed = 0.075;
+        controls.minDistance = 100.003;
+        controls.maxDistance = 1600;
+        controls.screenSpacePanning = false;
+        controls.update();
+      } catch (err) {
+        console.warn('No se pudieron ajustar controles:', err);
+      }
+
+      try {
+        const camera = world.camera();
+        camera.near = 0.001;
+        camera.far = 8000;
+        camera.updateProjectionMatrix();
+      } catch (err) {
+        console.warn('No se pudo ajustar la cámara:', err);
+      }
+
+      try {
+        if (typeof world.globeCurvatureResolution === 'function') world.globeCurvatureResolution(0.65);
+        if (world.globeMaterial && world.globeMaterial()) world.globeMaterial().bumpScale = 6;
+      } catch (err) {
+        console.warn('No se pudo ajustar el material del globo:', err);
+      }
+    }
+
+    function createHtmlMarker(d) {
+      const el = document.createElement('div');
+      if (d && d.kind === 'iss') {
+        el.className = 'iss-marker';
+        el.innerHTML = '🛰️';
+        el.title = 'ISS · clic para activar/desactivar la órbita';
+        el.onclick = function (ev) {
+          ev.stopPropagation();
+          toggleOrbit();
+        };
+      }
+      return el;
+    }
+
+    function applyMapAppearance() {
+      if (!world) return;
+      const map = MAPS[currentMapType];
+      const useClouds = currentMapType === 'satellite' && cloudsEnabled;
+      const cloudBust = `?v=${Math.floor(Date.now() / (3 * 60 * 60 * 1000))}`;
+
+      if (useClouds) {
+        world.globeImageUrl(CLOUD_TEXTURE_URL + cloudBust);
+        world.bumpImageUrl(MAPS.satellite.bump);
+        setTileEngine(null);
+        setStatus('mapStatus', 'Satélite con nubes activo.');
+        setStatus('mapAttribution', 'Live Cloud Maps · NASA Blue Marble · Globe.gl');
+      } else {
+        world.globeImageUrl(map.image);
+        world.bumpImageUrl(map.bump);
+        setTileEngine(currentMapType);
+        setStatus('mapStatus', map.status);
+        setStatus('mapAttribution', map.attribution);
+      }
+
+      try {
+        if (world.globeMaterial && world.globeMaterial()) {
+          world.globeMaterial().bumpScale = currentMapType === 'relief' ? 9 : 5;
+        }
+      } catch (err) {}
+
+      if (currentMapType === 'political' && countryPolygons.length) {
+        world.polygonsData(countryPolygons)
+          .polygonCapColor(d => rgbaFromHex(d.properties.__color, 0.24))
+          .polygonSideColor(() => 'rgba(0,0,0,0.06)')
+          .polygonStrokeColor(() => 'rgba(0,0,0,0.58)')
+          .polygonAltitude(0.002);
+      } else {
+        world.polygonsData([]);
+      }
+
+      updateCloudButton();
+      renderPaths();
+      renderIssLayers();
+    }
+
+    function setTileEngine(type) {
+      if (!world || typeof world.globeTileEngineUrl !== 'function') return;
+      const map = type ? MAPS[type] : null;
+      try {
+        if (typeof world.globeTileEngineClearCache === 'function') world.globeTileEngineClearCache();
+        if (typeof world.globeTileEngineMaxZoom === 'function') world.globeTileEngineMaxZoom(map && map.maxZoom ? map.maxZoom : 17);
+        world.globeTileEngineUrl(map && map.tileUrl ? map.tileUrl : null);
+      } catch (err) {
+        console.warn('No se pudo aplicar el motor de teselas:', err);
+      }
+    }
+
+    function changeMapType(type) {
+      if (!MAPS[type]) return;
+      currentMapType = type;
+      if (currentMapType !== 'satellite') cloudsEnabled = false;
+      document.querySelectorAll('.map-icon').forEach(btn => btn.classList.toggle('active', btn.dataset.map === type));
+      applyMapAppearance();
+    }
+
+    function toggleClouds() {
+      if (currentMapType !== 'satellite') {
+        updateCloudButton();
+        return;
+      }
+      cloudsEnabled = !cloudsEnabled;
+      applyMapAppearance();
+    }
+
+    function updateCloudButton() {
+      const btn = document.getElementById('btn-clouds');
+      if (!btn) return;
+      const available = currentMapType === 'satellite';
+      btn.classList.toggle('disabled', !available);
+      btn.innerHTML = available
+        ? (cloudsEnabled ? '☁️ Nubes: ACTIVADAS' : '☁️ Nubes: DESACTIVADAS')
+        : '☁️ Nubes: NO DISPONIBLE';
+      btn.title = available ? 'Activa o desactiva nubes sobre el modo Satélite.' : 'Las nubes solo están disponibles en el modo Satélite.';
+    }
+
+    function toggleBorders() {
+      showingBorders = !showingBorders;
+      document.getElementById('btn-borders').innerHTML = showingBorders ? '🗺️ Fronteras: ACTIVADO' : '🗺️ Fronteras: DESACTIVADO';
+      renderPaths();
+    }
+
+    function toggleOrbit() {
+      isOrbitVisible = !isOrbitVisible;
+      document.getElementById('btn-orbit').innerHTML = isOrbitVisible ? '🔴🟢 Órbita ISS: ACTIVADA' : '🔴🟢 Órbita ISS: DESACTIVADA';
+      if (isOrbitVisible) {
+        calculateOrbit();
+        clearInterval(orbitTimer);
+        orbitTimer = setInterval(calculateOrbit, ORBIT_REFRESH_MS);
+      } else {
+        clearInterval(orbitTimer);
+        orbitPaths = [];
+        renderPaths();
+      }
+    }
+
+    async function centerOnISS() {
+      try {
+        await ensureIssPosition();
+        if (!issData) {
+          setStatus('issReadout', 'No se pudo centrar: todavía no hay posición ISS.');
+          return;
+        }
+        world.pointOfView({ lat: issData.lat, lng: issData.lng, altitude: 1.45 }, 0);
+        const menu = document.getElementById('side-menu');
+        if (menu.classList.contains('open')) menu.classList.remove('open');
+      } catch (err) {
+        showError('No se pudo centrar en la ISS: ' + err.message);
+      }
+    }
+
+    function toggleMenu() {
+      document.getElementById('side-menu').classList.toggle('open');
+    }
+
+    function openModal(id) {
+      closeModals();
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('active');
+      const menu = document.getElementById('side-menu');
+      if (menu.classList.contains('open')) menu.classList.remove('open');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    }
+
+    function loadCountryData() {
+      fetch('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
+        .then(res => res.json())
+        .then(geo => {
+          const colors = ['#f4a261', '#e76f51', '#2a9d8f', '#e9c46a', '#264653', '#8ab17d'];
+          countryPolygons = geo.features || [];
+          countryPolygons.forEach((feature, idx) => {
+            feature.properties.__color = colors[idx % colors.length];
+            addFeatureBorders(feature);
+          });
+          applyMapAppearance();
+        })
+        .catch(err => console.warn('No se pudieron cargar países/fronteras:', err));
+    }
+
+    function addFeatureBorders(feature) {
+      if (!feature || !feature.geometry) return;
+      const geom = feature.geometry;
+      if (geom.type === 'Polygon') {
+        geom.coordinates.forEach(ring => addBorderRing(ring));
+      } else if (geom.type === 'MultiPolygon') {
+        geom.coordinates.forEach(poly => poly.forEach(ring => addBorderRing(ring)));
+      }
+    }
+
+    function addBorderRing(ring) {
+      if (!Array.isArray(ring) || ring.length < 2) return;
+      borderPaths.push({
+        type: 'border',
+        coords: ring.map(c => ({ lat: c[1], lng: c[0], alt: 0.006 }))
+      });
+    }
+
+    function startIssTracking() {
+      ensureIssPosition().then(() => {
+        if (issData && !hasAutoCenteredOnIss) {
+          hasAutoCenteredOnIss = true;
+          world.pointOfView({ lat: issData.lat, lng: issData.lng, altitude: 1.7 }, 0);
+        }
+      });
+      clearInterval(issTimer);
+      issTimer = setInterval(ensureIssPosition, ISS_REFRESH_MS);
+    }
+
+    async function ensureIssPosition() {
+      let data = await fetchIssFromApi().catch(() => null);
+      if (!data) data = await fetchIssFromTle().catch(() => null);
+      if (!data) return null;
+
+      issData = {
+        kind: 'iss',
+        lat: data.lat,
+        lng: normalizeLng(data.lng),
+        altitudeKm: data.altitudeKm || 420,
+        htmlAlt: 0.065,
+        alt: 0.07,
+        radius: 0.34,
+        color: '#00b7ff',
+        text: 'ISS',
+        size: 0.72
+      };
+
+      setStatus('issReadout', `ISS · lat ${issData.lat.toFixed(3)} · lng ${issData.lng.toFixed(3)} · alt ${Math.round(issData.altitudeKm)} km`);
+      renderIssLayers();
+      if (isOrbitVisible) calculateOrbit();
+      return issData;
+    }
+
+    async function fetchIssFromApi() {
+      const res = await fetch(`https://api.wheretheiss.at/v1/satellites/${ISS_NORAD_ID}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('API directa ISS no disponible');
+      const json = await res.json();
+      if (!Number.isFinite(json.latitude) || !Number.isFinite(json.longitude)) throw new Error('Coordenadas ISS inválidas');
+      return {
+        lat: Number(json.latitude),
+        lng: Number(json.longitude),
+        altitudeKm: Number(json.altitude) || 420
+      };
+    }
+
+    async function fetchIssFromTle() {
+      const satrec = await getSatrec();
+      const sample = getSatelliteSample(satrec, new Date());
+      if (!sample) throw new Error('No se pudo propagar la ISS');
+      return sample;
+    }
+
+    async function getSatrec(force) {
+      const isFresh = tleSatrec && (Date.now() - tleLoadedAt < TLE_REFRESH_MS);
+      if (!force && isFresh) return tleSatrec;
+
+      const loaders = [
+        async () => {
+          const res = await fetch(`https://api.wheretheiss.at/v1/satellites/${ISS_NORAD_ID}/tles`, { cache: 'no-store' });
+          if (!res.ok) throw new Error('TLE wheretheiss no disponible');
+          const json = await res.json();
+          return [json.line1, json.line2];
+        },
+        async () => {
+          const res = await fetch(`https://celestrak.org/NORAD/elements/gp.php?CATNR=${ISS_NORAD_ID}&FORMAT=TLE`, { cache: 'no-store' });
+          if (!res.ok) throw new Error('TLE CelesTrak no disponible');
+          const text = await res.text();
+          const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          return [lines.find(l => l.startsWith('1 ')), lines.find(l => l.startsWith('2 '))];
+        },
+        async () => EMBEDDED_TLE
+      ];
+
+      let lastErr = null;
+      for (const load of loaders) {
+        try {
+          const lines = await load();
+          if (!lines[0] || !lines[1]) throw new Error('TLE incompleto');
+          tleSatrec = satellite.twoline2satrec(lines[0], lines[1]);
+          tleLoadedAt = Date.now();
+          return tleSatrec;
+        } catch (err) {
+          lastErr = err;
+          console.warn('Fuente TLE fallida:', err);
+        }
+      }
+      throw lastErr || new Error('No hay TLE disponible');
+    }
+
+    function renderIssLayers() {
+      if (!world) return;
+      const htmlData = issData ? [issData] : [];
+      const pointData = [];
+      const labelData = [];
+
+      if (issData) {
+        pointData.push({ lat: issData.lat, lng: issData.lng, alt: 0.07, radius: 0.32, color: '#00b7ff' });
+        labelData.push({ lat: issData.lat, lng: issData.lng, alt: 0.105, text: 'ISS', size: 0.72, color: '#ffffff' });
+      }
+      if (observerPoint) pointData.push(observerPoint);
+      if (observerLabel) labelData.push(observerLabel);
+
+      world.htmlElementsData(htmlData);
+      world.pointsData(pointData);
+      world.labelsData(labelData);
+    }
+
+    async function calculateOrbit() {
+      if (!isOrbitVisible || !world) return;
+      try {
+        const satrec = await getSatrec();
+        const now = new Date();
+        const past = [];
+        const future = [];
+
+        for (let s = -ORBIT_BACK_MINUTES * 60; s <= ORBIT_FORWARD_MINUTES * 60; s += ORBIT_STEP_SECONDS) {
+          const sample = getSatelliteSample(satrec, new Date(now.getTime() + s * 1000));
+          if (!sample) continue;
+          const p = { lat: sample.lat, lng: sample.lng, alt: 0.07 };
+          if (s <= 0) past.push(p);
+          if (s >= 0) future.push(p);
+        }
+
+        orbitPaths = splitAntimeridian(past, 'past').concat(splitAntimeridian(future, 'future'));
+        renderPaths();
+      } catch (err) {
+        showError('No se pudo calcular la órbita: ' + err.message);
+      }
+    }
+
+    function getSatelliteSample(satrec, date) {
+      const propagated = satellite.propagate(satrec, date);
+      if (!propagated || !propagated.position) return null;
+      const gmst = satellite.gstime(date);
+      const gd = satellite.eciToGeodetic(propagated.position, gmst);
+      return {
+        lat: rad2deg(gd.latitude),
+        lng: normalizeLng(rad2deg(gd.longitude)),
+        altitudeKm: gd.height,
+        positionEci: propagated.position
+      };
+    }
+
+    function renderPaths() {
+      if (!world) return;
+      let paths = [];
+      if (showingBorders) {
+        paths = paths.concat(borderPaths.map(p => ({
+          type: 'border',
+          coords: p.coords.map(c => ({ lat: c.lat, lng: c.lng, alt: 0.006 }))
+        })));
+      }
+      if (isOrbitVisible) paths = paths.concat(orbitPaths);
+      if (visibilityPaths.length) paths = paths.concat(visibilityPaths);
+
+      world.pathsData(paths)
+        .pathColor(d => {
+          if (d.type === 'border') return currentMapType === 'relief' ? '#111111' : 'rgba(230,245,255,0.78)';
+          if (d.type === 'past') return '#ff2020';
+          if (d.type === 'future') return '#20ff46';
+          if (d.type === 'visibility') return '#00ffff';
+          if (d.type === 'visiblePass') return '#00aaff';
+          return '#ffffff';
+        })
+        .pathStroke(d => {
+          if (d.type === 'past' || d.type === 'future') return 0.62;
+          if (d.type === 'visiblePass') return 0.56;
+          if (d.type === 'visibility') return 0.22;
+          return 0.14;
+        })
+        .pathDashLength(d => d.type === 'visibility' ? 0.035 : 1)
+        .pathDashGap(d => d.type === 'visibility' ? 0.018 : 0)
+        .pathDashAnimateTime(0)
+        .pathTransitionDuration(0);
+    }
+
+    function splitAntimeridian(coords, type) {
+      const segments = [];
+      let current = [];
+      for (let i = 0; i < coords.length; i++) {
+        if (i > 0 && Math.abs(coords[i].lng - coords[i - 1].lng) > 180) {
+          if (current.length > 1) segments.push({ type, coords: current });
+          current = [];
+        }
+        current.push(coords[i]);
+      }
+      if (current.length > 1) segments.push({ type, coords: current });
+      return segments;
+    }
+
+    async function calculateVisiblePass() {
+      const result = document.getElementById('passResult');
+      result.style.display = 'block';
+      result.style.color = '#dff7ff';
+      result.innerHTML = 'Calculando próximo paso…';
+
+      try {
+        const cityText = document.getElementById('cityInput').value.trim() || 'Barcelona, España';
+        const location = await resolveLocation(cityText);
+        const satrec = await getSatrec();
+        const pass = findNextPass(satrec, location.lat, location.lng, 48);
+
+        drawObserver(location);
+
+        if (!pass) {
+          result.innerHTML = `No he encontrado un paso por encima de ${MIN_VISIBLE_ELEVATION_DEG}° sobre <b>${escapeHtml(location.name)}</b> en las próximas 48 horas.`;
+          return;
+        }
+
+        drawVisibility(location, pass);
+        result.innerHTML = `
+          <b>${escapeHtml(location.name)}</b><br>
+          Inicio del paso: <b>${formatDate(pass.start)}</b><br>
+          Máxima elevación: <b>${pass.maxElevation.toFixed(1)}°</b> a las <b>${formatDate(pass.maxTime)}</b><br>
+          Fin del paso: <b>${formatDate(pass.end)}</b><br>
+          Duración aproximada: <b>${Math.round((pass.end - pass.start) / 60000)} min</b><br>
+          Azimut en máximo: <b>${pass.maxAzimuth.toFixed(0)}°</b>
+        `;
+      } catch (err) {
+        result.style.color = '#ff9d9d';
+        result.innerHTML = 'No se pudo calcular el paso: ' + escapeHtml(err.message);
+      }
+    }
+
+    async function resolveLocation(text) {
+      const clean = text.trim();
+      if (!clean || /barcelona/i.test(clean)) {
+        return { name: 'Barcelona, España', lat: 41.3874, lng: 2.1686 };
+      }
+      const url = 'https://geocoding-api.open-meteo.com/v1/search?count=1&language=es&format=json&name=' + encodeURIComponent(clean);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('No se pudo consultar la ciudad.');
+      const data = await res.json();
+      if (!data.results || !data.results.length) throw new Error('No he encontrado esa ciudad.');
+      const r = data.results[0];
+      return {
+        name: [r.name, r.admin1, r.country].filter(Boolean).join(', '),
+        lat: Number(r.latitude),
+        lng: Number(r.longitude)
+      };
+    }
+
+    function findNextPass(satrec, lat, lng, hoursAhead) {
+      const observerGd = {
+        longitude: deg2rad(lng),
+        latitude: deg2rad(lat),
+        height: 0
+      };
+      const now = new Date();
+      const end = new Date(now.getTime() + hoursAhead * 3600 * 1000);
+      const stepMs = 30 * 1000;
+      let active = false;
+      let currentPass = null;
+
+      for (let t = now.getTime(); t <= end.getTime(); t += stepMs) {
+        const date = new Date(t);
+        const propagated = satellite.propagate(satrec, date);
+        if (!propagated || !propagated.position) continue;
+        const gmst = satellite.gstime(date);
+        const ecf = satellite.eciToEcf(propagated.position, gmst);
+        const look = satellite.ecfToLookAngles(observerGd, ecf);
+        const elevation = rad2deg(look.elevation);
+        const azimuth = rad2deg(look.azimuth);
+        const geo = getSatelliteSample(satrec, date);
+
+        if (elevation >= MIN_VISIBLE_ELEVATION_DEG && !active) {
+          active = true;
+          currentPass = {
+            start: date,
+            end: date,
+            maxTime: date,
+            maxElevation: elevation,
+            maxAzimuth: azimuth,
+            track: []
+          };
+        }
+        if (active && currentPass) {
+          currentPass.end = date;
+          if (geo) currentPass.track.push({ lat: geo.lat, lng: geo.lng, alt: 0.082 });
+          if (elevation > currentPass.maxElevation) {
+            currentPass.maxElevation = elevation;
+            currentPass.maxAzimuth = azimuth;
+            currentPass.maxTime = date;
+          }
+        }
+        if (active && elevation < MIN_VISIBLE_ELEVATION_DEG && currentPass) {
+          return currentPass;
+        }
+      }
+      return null;
+    }
+
+    function drawObserver(location) {
+      observerPoint = { lat: location.lat, lng: location.lng, alt: 0.014, radius: 0.22, color: '#00ffcc' };
+      observerLabel = { lat: location.lat, lng: location.lng, alt: 0.036, text: '📍 ' + location.name, size: 0.58, color: '#ffffff' };
+      renderIssLayers();
+    }
+
+    function drawVisibility(location, pass) {
+      const radiusKm = visibilityRadiusKm(420, MIN_VISIBLE_ELEVATION_DEG);
+      const circle = circleCoords(location.lat, location.lng, radiusKm, 160).map(p => ({ ...p, alt: 0.018 }));
+      visibilityPaths = [{ type: 'visibility', coords: circle }];
+      if (pass.track && pass.track.length > 1) {
+        visibilityPaths.push(...splitAntimeridian(pass.track, 'visiblePass'));
+      }
+      renderPaths();
+      world.pointOfView({ lat: location.lat, lng: location.lng, altitude: 1.75 }, 0);
+    }
+
+    function visibilityRadiusKm(altitudeKm, minElevDeg) {
+      const r = EARTH_RADIUS_KM;
+      const h = altitudeKm;
+      const e = deg2rad(minElevDeg);
+      const rho = r / (r + h);
+      const central = Math.acos(rho * Math.cos(e)) - e;
+      return Math.max(0, central * r);
+    }
+
+    function circleCoords(latDeg, lngDeg, radiusKm, steps) {
+      const angular = radiusKm / EARTH_RADIUS_KM;
+      const lat1 = deg2rad(latDeg);
+      const lon1 = deg2rad(lngDeg);
+      const out = [];
+      for (let i = 0; i <= steps; i++) {
+        const bearing = 2 * Math.PI * i / steps;
+        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(angular) + Math.cos(lat1) * Math.sin(angular) * Math.cos(bearing));
+        const lon2 = lon1 + Math.atan2(Math.sin(bearing) * Math.sin(angular) * Math.cos(lat1), Math.cos(angular) - Math.sin(lat1) * Math.sin(lat2));
+        out.push({ lat: rad2deg(lat2), lng: normalizeLng(rad2deg(lon2)) });
+      }
+      return out;
+    }
+
+    function setStatus(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function showError(text) {
+      console.error(text);
+      const box = document.getElementById('errorBox');
+      if (box) {
+        box.style.display = 'block';
+        box.textContent = text;
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+    }
+
+    function rgbaFromHex(hex, alpha) {
+      const clean = String(hex || '#ffffff').replace('#', '');
+      const n = parseInt(clean, 16);
+      const r = (n >> 16) & 255;
+      const g = (n >> 8) & 255;
+      const b = n & 255;
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function deg2rad(deg) { return deg * Math.PI / 180; }
+    function rad2deg(rad) { return rad * 180 / Math.PI; }
+    function normalizeLng(lng) {
+      let value = ((lng + 180) % 360 + 360) % 360 - 180;
+      return value === -180 ? 180 : value;
+    }
+    function formatDate(date) {
+      return new Intl.DateTimeFormat('es-ES', {
+        dateStyle: 'short',
+        timeStyle: 'medium'
+      }).format(date);
+    }
+
+    // Exposición explícita para los onclick del HTML.
+    window.toggleMenu = toggleMenu;
+    window.changeMapType = changeMapType;
+    window.toggleClouds = toggleClouds;
+    window.toggleBorders = toggleBorders;
+    window.toggleOrbit = toggleOrbit;
+    window.centerOnISS = centerOnISS;
+    window.openModal = openModal;
+    window.closeModals = closeModals;
+    window.calculateVisiblePass = calculateVisiblePass;
+  </script>
+</body>
+</html>

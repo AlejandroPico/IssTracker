@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>ISS Tracker - Pro 3D v20 Estable</title>
+
+    <!-- Librerías: Globe.gl y Satellite.js -->
+    <script src="https://unpkg.com/globe.gl"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.1.3/satellite.min.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #000; }
+        #globeViz { width: 100vw; height: 100vh; }
+        #mapAttribution {
+            position: absolute; left: 10px; bottom: 8px; z-index: 80; color: rgba(255,255,255,0.58);
+            font-size: 11px; background: rgba(0,0,0,0.42); padding: 4px 7px; border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.08); pointer-events: none;
+        }
+
+        /* --- MENÚ HAMBURGUESA --- */
+        #menu-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 100; cursor: pointer; color: #fff;
+            font-size: 28px; background: rgba(0, 0, 0, 0.6); padding: 5px 15px; border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2); transition: 0.3s;
+        }
+        #menu-btn:hover { background: rgba(0, 0, 0, 0.9); }
+
+        #side-menu {
+            position: absolute; top: 0; left: -340px; width: 320px; height: 100vh;
+            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px); z-index: 99;
+            transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); padding-top: 80px; color: white;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.5); overflow-y: auto;
+        }
+        #side-menu.open { left: 0; }
+
+        .menu-item {
+            padding: 18px 25px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 16px; transition: 0.2s; display: flex; align-items: center; gap: 10px;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); padding-left: 30px; border-left: 4px solid #00aaff; }
+        .menu-item.disabled { opacity: 0.38; cursor: not-allowed; }
+        .menu-item.disabled:hover { background: transparent; padding-left: 25px; border-left: none; }
+        .menu-section { padding: 18px 25px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .menu-section-title { font-weight: bold; margin-bottom: 10px; color: #fff; }
+
+        /* Selector por iconos */
+        .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .map-icon {
+            background: rgba(0,0,0,0.45); color: white; border: 1px solid rgba(255,255,255,0.16);
+            padding: 9px 7px; cursor: pointer; text-align: center; border-radius: 6px; transition: 0.2s;
+            font-size: 12px; min-height: 54px;
+        }
+        .map-icon:hover { background: rgba(255,255,255,0.10); border-color: #00aaff; }
+        .map-icon.active { border-color: #00aaff; box-shadow: 0 0 10px rgba(0,170,255,0.35); background: rgba(0,170,255,0.16); }
+        .map-icon .map-symbol { display: block; font-size: 22px; margin-bottom: 4px; }
+
+        .camera-list { display: flex; flex-direction: column; gap: 8px; }
+        .camera-list button {
+            width: 100%; text-align: left; background: rgba(0,0,0,0.45); color: white;
+            border: 1px solid rgba(255,255,255,0.16); padding: 9px; border-radius: 6px; cursor: pointer;
+        }
+        .camera-list button:hover, .camera-list button.active { border-color: #00aaff; background: rgba(0,170,255,0.16); }
+        .small-note { color: #aaa; font-size: 12px; line-height: 1.35; margin-top: 8px; }
+
+        .camera-subsection-title {
+            color: #cfd9e6; font-size: 12px; margin: 12px 0 7px 0; opacity: 0.95;
+            border-left: 2px solid #00aaff; padding-left: 7px;
+        }
+        .camera-controls-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.10);
+            padding: 8px; border-radius: 6px; font-size: 12px;
+        }
+        .camera-controls-row select {
+            background: rgba(0,0,0,0.70); color: white; border: 1px solid rgba(255,255,255,0.20);
+            border-radius: 4px; padding: 5px 7px;
+        }
+        .camera-countdown {
+            color: #aaa; font-size: 12px; margin-top: 7px;
+        }
+
+
+        /* Panel flotante de cámaras */
+        #cameraPanel {
+            display: none; position: absolute; bottom: 30px; right: 30px; z-index: 150;
+            width: 360px; height: 285px; min-width: 300px; min-height: 270px;
+            max-width: calc(100vw - 30px); max-height: calc(100vh - 30px);
+            background: rgba(0,0,0,0.86); border: 2px solid #00aaff; border-radius: 12px;
+            padding: 9px; color: white; box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
+            resize: both; overflow: hidden; flex-direction: column;
+        }
+        #cameraPanel.active { display: flex; }
+        .camera-header {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            margin-bottom: 6px; cursor: move; user-select: none; touch-action: none; flex: 0 0 auto;
+        }
+        #cameraTitle {
+            font-size: 14px; font-weight: bold; color: #00aaff; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
+        }
+        .camera-window-actions { display: flex; align-items: center; gap: 6px; }
+        .camera-icon-btn {
+            width: 25px; height: 25px; display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; font-weight: bold; color: #ddd; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.18); border-radius: 5px; transition: 0.2s;
+        }
+        .camera-icon-btn:hover { background: rgba(0,170,255,0.24); border-color: #00aaff; color: #fff; }
+        .camera-icon-btn.off { color: #777; border-color: rgba(255,255,255,0.08); }
+        .camera-close { color: #ff5555; }
+        .camera-frame-wrap { flex: 1 1 auto; min-height: 200px; }
+        #cameraIframe { width: 100%; height: 100%; border-radius: 6px; display: block; background: #000; }
+        #cameraStatus { font-size: 11px; color: #aaa; margin-top: 6px; line-height: 1.25; flex: 0 0 auto; }
+
+        /* Icono de la ISS y ciudad */
+        .iss-marker {
+            font-size: 38px; cursor: pointer; pointer-events: auto;
+            text-shadow: 0 0 15px #00aaff;
+        }
+        .city-marker {
+            font-size: 24px; pointer-events: auto;
+            text-shadow: 0 0 12px #00ffcc; cursor: default;
+        }
+        .marker-label {
+            white-space: nowrap; color: #fff; font-size: 11px; background: rgba(0,0,0,0.72);
+            border: 1px solid rgba(255,255,255,0.18); border-radius: 4px; padding: 2px 5px; margin-top: 1px;
+        }
+
+        /* Modales */
+        .modal {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); padding: 25px; color: white;
+            z-index: 200; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 650px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.65);
+        }
+        .modal.active { display: block; }
+        .close-btn { float: right; cursor: pointer; font-size: 20px; color: #888; transition: 0.2s; }
+        .close-btn:hover { color: #fff; }
+
+        input[type="text"] { width: calc(100% - 20px); padding: 10px; margin: 15px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 5px; }
+        button.action-btn { background: #00aaff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        button.action-btn:hover { background: #0088cc; }
+        .result-card { margin-top: 15px; font-size: 14px; line-height: 1.55; color: #d7f7ff; }
+        .result-card b { color: #4CAF50; }
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .result-table td { padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .result-table td:first-child { color: #aaa; width: 38%; }
+        .warning { color: #ffcc66; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-btn" onclick="toggleMenu()">☰</div>
+
+    <div id="side-menu">
+        <div class="menu-section">
+            <div class="menu-section-title">🌍 Apariencia del Globo</div>
+            <div class="map-grid">
+                <button class="map-icon active" data-map="satellite" onclick="changeMapType('satellite')"><span class="map-symbol">🛰️</span>Satélite</button>
+                <button class="map-icon" data-map="political" onclick="changeMapType('political')"><span class="map-symbol">🗺️</span>Político</button>
+                <button class="map-icon" data-map="relief" onclick="changeMapType('relief')"><span class="map-symbol">⛰️</span>Relieve</button>
+                <button class="map-icon" data-map="night" onclick="changeMapType('night')"><span class="map-symbol">🌃</span>Nocturno</button>
+            </div>
+            <div class="small-note" id="mapStatus">Vista satélite activa.</div>
+        </div>
+
+        <div class="menu-item" onclick="toggleClouds()" id="btn-clouds">☁️ Nubes: DESACTIVADAS</div>
+        <div class="menu-item" onclick="toggleBorders()" id="btn-borders">🗺️ Fronteras: DESACTIVADO</div>
+        <div class="menu-item" onclick="toggleOrbit()" id="btn-orbit">🔴🟢 Órbita ISS: DESACTIVADA</div>
+        <div class="menu-item" onclick="centerOnISS()">🚀 Centrar en la ISS</div>
+        <div class="menu-item" onclick="openModal('locationModal')">📍 Paso por mi ciudad</div>
+
+        <div class="menu-section">
+            <div class="menu-section-title">📹 Cámaras</div>
+            <div class="camera-subsection-title">▸ Señales disponibles</div>
+            <div class="camera-list" id="cameraList"></div>
+            <div class="camera-subsection-title">▸ Rotación automática</div>
+            <div class="camera-controls-row">
+                <label for="rotationSecondsSelect">Intervalo</label>
+                <select id="rotationSecondsSelect" onchange="setCameraRotationInterval(this.value)">
+                    <option value="5">5 s</option>
+                    <option value="10" selected>10 s</option>
+                    <option value="15">15 s</option>
+                    <option value="20">20 s</option>
+                    <option value="30">30 s</option>
+                    <option value="45">45 s</option>
+                    <option value="60">1 min</option>
+                    <option value="120">2 min</option>
+                    <option value="300">5 min</option>
+                </select>
+            </div>
+            <div class="camera-countdown" id="cameraMenuCountdown">Siguiente cambio: 10 s</div>
+        </div>
+    </div>
+
+    <div id="globeViz"></div>
+    <div id="mapAttribution">NASA Blue Marble / Globe.gl</div>
+    <div id="runtimeError" style="display:none; position:absolute; right:12px; top:12px; z-index:300; max-width:440px; background:rgba(80,0,0,0.88); color:#fff; border:1px solid rgba(255,100,100,0.7); padding:10px 12px; font-size:12px; line-height:1.35; border-radius:6px;"></div>
+
+    <div id="cameraPanel">
+        <div class="camera-header" id="cameraHeader">
+            <span id="cameraTitle">📹 Cámara en Directo</span>
+            <div class="camera-window-actions">
+                <button class="camera-icon-btn" id="btnRotationIcon" onclick="toggleCameraRotation(event)" title="Rotación automática activada">⟳</button>
+                <button class="camera-icon-btn camera-close" onclick="closeCameraPanel()" title="Cerrar cámara">✖</button>
+            </div>
+        </div>
+        <div class="camera-frame-wrap">
+            <iframe id="cameraIframe" src="" frameborder="0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+        <div id="cameraStatus"></div>
+    </div>
+
+    <div id="locationModal" class="modal">
+        <span class="close-btn" onclick="closeModals()">✖</span>
+        <h3 style="margin-top:0;">Próximo paso visible de la ISS</h3>
+        <input type="text" id="cityInput" value="Barcelona, España" placeholder="Ej: Barcelona, España">
+        <button class="action-btn" onclick="calculateVisiblePass()">Calcular</button>
+        <div id="passResult" class="result-card" style="display: none;"></div>
+    </div>
+
+    <script>
+        window.addEventListener('error', function(event) {
+            const box = document.getElementById('runtimeError');
+            if (box) {
+                box.style.display = 'block';
+                box.innerHTML = '<b>Error JavaScript:</b><br>' + String(event.message || 'Error desconocido');
+            }
+            console.error(event.error || event.message);
+        });
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Promesa rechazada:', event.reason);
+        });
+
+        // --- CONFIGURACIÓN GENERAL ---
+        const MAP_TEXTURES = {
+            satellite: {
+                image: 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
+                bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+                status: 'Vista satélite activa. Al hacer zoom se cargan teselas satélite HD.',
+                attribution: 'Esri World Imagery · NASA Blue Marble · Globe.gl',
+                maxZoom: 23,
+                tileUrl: (x, y, l) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${l}/${y}/${x}`
+            },
+            political: {
+                image: 'https://unpkg.com/three-globe/example/img/earth-water.png',
+                bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+                status: 'Vista política activa. Mantiene el coloreado por países y añade base cartográfica HD al acercar.',
+                attribution: 'Esri World Street Map · Natural Earth · Globe.gl',
+                maxZoom: 23,
+                tileUrl: (x, y, l) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${l}/${y}/${x}`
+            },
+            relief: {
+                image: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+                bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+                status: 'Vista relieve/topográfica activa. Al hacer zoom se cargan teselas de sombreado de relieve.',
+                attribution: 'Esri World Shaded Relief · Globe.gl',
+                maxZoom: 13,
+                tileUrl: (x, y, l) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/${l}/${y}/${x}`
+            },
+            night: {
+                image: 'https://unpkg.com/three-globe/example/img/earth-night.jpg',
+                bump: 'https://unpkg.com/three-globe/example/img/earth-topology.png',
+                status: 'Vista nocturna activa. Muestra luces nocturnas de la Tierra.',
+                attribution: 'NASA Earth at Night · Globe.gl',
+                maxZoom: 8,
+                tileUrl: null
+            }
+        };
+
+        const CLOUD_TEXTURE = {
+            image: 'https://clouds.matteason.co.uk/images/8192x4096/earth.jpg',
+            status: 'Nubes activadas sobre la vista satélite. Textura global casi en directo, actualizada aproximadamente cada 3 horas.',
+            attribution: 'Live Cloud Maps: modified EUMETSAT data · NASA Blue Marble'
+        };
+
+        const ISS_NORAD_ID = 25544;
+        const EARTH_RADIUS_KM = 6371;
+        const MIN_VISIBLE_ELEVATION_DEG = 10;
+        const OBSERVER_SUN_MAX_ALTITUDE_DEG = -6;
+        const ORBIT_BACK_MINUTES = 46;
+        const ORBIT_FORWARD_MINUTES = 46;
+        const ORBIT_STEP_SECONDS = 30;
+        const ORBIT_REFRESH_MS = 15000;
+        const TLE_REFRESH_MS = 10 * 60 * 1000;
+
+        // Cámaras oficiales de NASA localizadas en el canal de NASA / NASA ISS.
+        const cameraStreams = [
+            {
+                id: 'nasa-iss-hd-earth',
+                title: 'NASA - ISS HD Earth View',
+                videoId: 'FuuC4dpSQ1M',
+                note: 'Vista externa de alta definición desde la ISS.'
+            },
+            {
+                id: 'nasa-iss-live-video',
+                title: 'NASA - Live Video from ISS',
+                videoId: 'iYmvCUonukw',
+                note: 'Vídeo en directo de la ISS; puede alternar vistas exteriores e interiores.'
+            },
+            {
+                id: 'nasa-iss-alt',
+                title: 'NASA - ISS Live alternativa',
+                videoId: 'DIgkvm2nmHc',
+                note: 'Emisión alternativa relacionada con NASA/ISS.'
+            },
+            {
+                id: 'sen-iss-4k',
+                title: 'Sen - ISS 4K Earth View',
+                videoId: 'fO9e9jnhYK8',
+                note: 'Vista 4K de la Tierra desde cámaras instaladas en la ISS.'
+            },
+            {
+                id: 'iss-live-now',
+                title: 'ISS Live Now - Earth View',
+                videoId: 'vytmBNhc9ig',
+                note: 'Directo externo centrado en vistas de la Tierra desde la ISS.'
+            }
+        ];
+
+        let showingBorders = false;
+        let isOrbitVisible = false;
+        let isCameraVisible = false;
+        let rotateCameras = true;
+        let currentCameraIndex = 0;
+        let cameraRotationSeconds = 10;
+        let cameraCountdownRemaining = 10;
+        let currentMapType = 'satellite';
+        let cloudsEnabled = false;
+        let issData = null;
+        let observerMarker = null;
+        let observerPointData = [];
+        let observerLabelData = [];
+        let issPointData = [];
+
+        let countryPolygons = [];
+        let borderPaths = [];
+        let orbitPaths = [];
+        let visibilityConePaths = [];
+        let visiblePassPaths = [];
+        let rotationInterval = null;
+        let rotationCountdownInterval = null;
+        let orbitInterval = null;
+        let tleCache = null;
+        let tleLoadedAt = 0;
+
+        // --- INICIALIZAR EL GLOBO ---
+        const world = Globe()
+            (document.getElementById('globeViz'))
+            .globeImageUrl(MAP_TEXTURES.satellite.image)
+            .bumpImageUrl(MAP_TEXTURES.satellite.bump)
+            .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+            .showAtmosphere(true)
+            .atmosphereColor('#3a6680')
+            .atmosphereAltitude(0.15)
+            .htmlLat('lat')
+            .htmlLng('lng')
+            .htmlAltitude(0.055)
+            .htmlTransitionDuration(0)
+            .htmlElement(createHtmlMarker)
+            .pointLat('lat')
+            .pointLng('lng')
+            .pointAltitude('alt')
+            .pointRadius('radius')
+            .pointColor('color')
+            .pointsTransitionDuration(0)
+            .labelLat('lat')
+            .labelLng('lng')
+            .labelAltitude('alt')
+            .labelText('text')
+            .labelSize('size')
+            .labelColor('color')
+            .labelResolution(2)
+            .labelIncludeDot(true)
+            .labelDotRadius(0.16)
+            .labelsTransitionDuration(0);
+
+        try {
+            world.globeMaterial().bumpScale = 8;
+        } catch (e) {
+            console.warn('No se pudo ajustar bumpScale del material del globo.', e);
+        }
+
+        configureStableControls();
+        if (typeof world.onPointClick === 'function') {
+            world.onPointClick(d => {
+                if (d && d.kind === 'iss-point') toggleISSDetails();
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            world.width(window.innerWidth).height(window.innerHeight);
+        });
+
+        // --- CONTROLES ESTABLES: ZOOM PROFUNDO SIN INERCIA ---
+        function configureStableControls() {
+            try {
+                if (typeof world.globeCurvatureResolution === 'function') world.globeCurvatureResolution(0.65);
+                if (typeof world.globeTileEngineMaxZoom === 'function') world.globeTileEngineMaxZoom(23);
+            } catch (e) {
+                console.warn('No se pudo ajustar la resolución/teselas del globo.', e);
+            }
+
+            try {
+                const controls = world.controls();
+                controls.enableDamping = false;
+                controls.dampingFactor = 0;
+                controls.rotateSpeed = 0.48;
+                controls.zoomSpeed = 0.075;
+                controls.minDistance = 100.003;
+                controls.maxDistance = 1600;
+                controls.screenSpacePanning = false;
+                controls.update();
+            } catch (e) {
+                console.warn('No se pudieron ajustar los controles del globo.', e);
+            }
+
+            try {
+                const camera = world.camera();
+                camera.near = 0.001;
+                camera.far = 8000;
+                camera.updateProjectionMatrix();
+            } catch (e) {
+                console.warn('No se pudo ajustar la cámara.', e);
+            }
+        }
+
+        // --- MARCADORES HTML ---
+        function createHtmlMarker(d) {
+            const wrapper = document.createElement('div');
+            if (d.kind === 'iss') {
+                wrapper.className = 'iss-marker';
+                wrapper.innerHTML = '🛰️';
+                wrapper.title = 'ISS: clic para mostrar/ocultar órbita y abrir cámaras';
+                wrapper.onclick = toggleISSDetails;
+            }
+            return wrapper;
+        }
+
+        function renderHtmlMarkers() {
+            world.htmlElementsData(issData ? [issData] : []);
+            renderObserverMarker();
+        }
+
+        function renderObserverMarker() {
+            const combinedPoints = [];
+
+            // Punto 3D de respaldo para la ISS: evita que el tracker parezca vacío si el icono HTML queda oculto.
+            if (issData && Number.isFinite(issData.lat) && Number.isFinite(issData.lng)) {
+                issPointData = [{
+                    kind: 'iss-point',
+                    lat: issData.lat,
+                    lng: issData.lng,
+                    alt: 0.07,
+                    radius: 0.32,
+                    color: '#00aaff'
+                }];
+                combinedPoints.push(...issPointData);
+            } else {
+                issPointData = [];
+            }
+
+            if (!observerMarker) {
+                observerPointData = [];
+                observerLabelData = [];
+            } else {
+                observerPointData = [{
+                    kind: 'observer',
+                    lat: observerMarker.lat,
+                    lng: observerMarker.lng,
+                    alt: 0.012,
+                    radius: 0.18,
+                    color: '#00ffcc'
+                }];
+                observerLabelData = [{
+                    lat: observerMarker.lat,
+                    lng: observerMarker.lng,
+                    alt: 0.025,
+                    text: `📍 ${observerMarker.name || 'Observador'}`,
+                    size: 0.62,
+                    color: '#ffffff'
+                }];
+                combinedPoints.push(...observerPointData);
+            }
+
+            world.pointsData(combinedPoints);
+            world.labelsData(observerLabelData);
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>'"]/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[char]));
+        }
+
+        // --- CARGAR DATOS GEOGRÁFICOS ---
+        fetch('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
+            .then(res => res.json())
+            .then(countries => {
+                const mapColors = ['#f4a261', '#e76f51', '#2a9d8f', '#e9c46a', '#264653', '#8ab17d'];
+
+                countries.features.forEach(feature => {
+                    feature.properties.color = mapColors[Math.floor(Math.random() * mapColors.length)];
+                    countryPolygons.push(feature);
+
+                    if(feature.geometry.type === 'Polygon') {
+                        feature.geometry.coordinates.forEach(ring => {
+                            borderPaths.push({ type: 'border', coords: ring.map(c => ({ lat: c[1], lng: c[0] })) });
+                        });
+                    } else if(feature.geometry.type === 'MultiPolygon') {
+                        feature.geometry.coordinates.forEach(poly => {
+                            poly.forEach(ring => {
+                                borderPaths.push({ type: 'border', coords: ring.map(c => ({ lat: c[1], lng: c[0] })) });
+                            });
+                        });
+                    }
+                });
+                renderPaths();
+            })
+            .catch(err => console.error('No se pudieron cargar fronteras/países:', err));
+
+        // --- GESTOR DE TIPOS DE MAPA ---
+        function changeMapType(type) {
+            if (!MAP_TEXTURES[type]) return;
+            currentMapType = type;
+
+            document.querySelectorAll('.map-icon').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.map === type);
+            });
+
+            applyMapAppearance();
+        }
+
+        function toggleClouds() {
+            if (currentMapType !== 'satellite') {
+                updateCloudButtonState();
+                return;
+            }
+            cloudsEnabled = !cloudsEnabled;
+            updateCloudButtonState();
+            applyMapAppearance();
+        }
+
+        function updateCloudButtonState() {
+            const btn = document.getElementById('btn-clouds');
+            if (!btn) return;
+            if (currentMapType !== 'satellite') {
+                btn.classList.add('disabled');
+                btn.innerHTML = '☁️ Nubes: NO DISPONIBLE';
+                return;
+            }
+            btn.classList.remove('disabled');
+            btn.innerHTML = cloudsEnabled ? '☁️ Nubes: ACTIVADAS' : '☁️ Nubes: DESACTIVADAS';
+        }
+
+        function applyMapAppearance() {
+            updateCloudButtonState();
+            const texture = MAP_TEXTURES[currentMapType];
+            const cloudsCanApply = cloudsEnabled && currentMapType === 'satellite';
+            const cacheBust = cloudsCanApply ? `?v=${Math.floor(Date.now() / (3 * 60 * 60 * 1000))}` : '';
+
+            if (cloudsCanApply) {
+                world.globeImageUrl(CLOUD_TEXTURE.image + cacheBust);
+                world.bumpImageUrl(MAP_TEXTURES.satellite.bump);
+                setTileEngine(null);
+                document.getElementById('mapStatus').innerText = CLOUD_TEXTURE.status;
+                updateMapAttributionText(CLOUD_TEXTURE.attribution);
+            } else {
+                world.globeImageUrl(texture.image);
+                world.bumpImageUrl(texture.bump);
+                setTileEngine(currentMapType);
+                document.getElementById('mapStatus').innerText = texture.status + (cloudsEnabled && currentMapType !== 'satellite' ? ' Las nubes están activadas, pero solo se aplican sobre Satélite en esta versión estable.' : '');
+                updateMapAttributionText(texture.attribution || '');
+            }
+
+            try {
+                world.globeMaterial().bumpScale = currentMapType === 'relief' ? 4 : 8;
+            } catch (e) {}
+
+            if (currentMapType === 'political') {
+                world.polygonsData(countryPolygons)
+                     .polygonCapColor(d => hexToRgba(d.properties.color, 0.42))
+                     .polygonSideColor(() => 'rgba(0,0,0,0.08)')
+                     .polygonStrokeColor(() => 'rgba(0,0,0,0.55)')
+                     .polygonAltitude(0.002);
+            } else {
+                world.polygonsData([]);
+            }
+
+            renderPaths();
+            renderHtmlMarkers();
+            renderObserverMarker();
+        }
+
+        function setTileEngine(type) {
+            try {
+                if (typeof world.globeTileEngineClearCache === 'function') {
+                    world.globeTileEngineClearCache();
+                }
+                const texture = type ? MAP_TEXTURES[type] : null;
+
+                if (typeof world.globeTileEngineMaxZoom === 'function') {
+                    world.globeTileEngineMaxZoom((texture && texture.maxZoom) ? texture.maxZoom : 17);
+                }
+
+                if (texture && texture.tileUrl) {
+                    world.globeTileEngineUrl(texture.tileUrl);
+                } else {
+                    world.globeTileEngineUrl(null);
+                }
+            } catch (e) {
+                console.warn('No se pudo cambiar el motor de teselas:', e);
+            }
+        }
+
+        function updateMapAttributionText(text) {
+            const attribution = document.getElementById('mapAttribution');
+            if (attribution) attribution.innerText = text || '';
+        }
+
+        function hexToRgba(hex, alpha) {
+            const clean = String(hex).replace('#', '');
+            const bigint = parseInt(clean, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+
+        // Refresca la textura de nubes cuando esté activa.
+        setInterval(() => {
+            if (cloudsEnabled && currentMapType === 'satellite') applyMapAppearance();
+        }, 3 * 60 * 60 * 1000);
+
+        // --- TLE / ÓRBITA ---
+        async function getSatrec(force = false) {
+            const fresh = tleCache && (Date.now() - tleLoadedAt < TLE_REFRESH_MS);
+            if (!force && fresh) return tleCache;
+
+            const sources = [
+                async () => {
+                    const res = await fetch(`https://api.wheretheiss.at/v1/satellites/${ISS_NORAD_ID}/tles`);
+                    if (!res.ok) throw new Error('wheretheiss TLE no disponible');
+                    const tle = await res.json();
+                    return [tle.line1, tle.line2];
+                },
+                async () => {
+                    const res = await fetch(`https://celestrak.org/NORAD/elements/gp.php?CATNR=${ISS_NORAD_ID}&FORMAT=TLE`);
+                    if (!res.ok) throw new Error('CelesTrak TLE no disponible');
+                    const text = await res.text();
+                    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+                    const line1 = lines.find(line => line.startsWith('1 '));
+                    const line2 = lines.find(line => line.startsWith('2 '));
+                    if (!line1 || !line2) throw new Error('CelesTrak no devolvió dos líneas TLE válidas');
+                    return [line1, line2];
+                }
+            ];
+
+            let lastError = null;
+            for (const load of sources) {
+                try {
+                    const [line1, line2] = await load();
+                    tleCache = satellite.twoline2satrec(line1, line2);
+                    tleLoadedAt = Date.now();
+                    return tleCache;
+                } catch (error) {
+                    lastError = error;
+                    console.warn('Fuente TLE fallida:', error);
+                }
+            }
+
+            throw lastError || new Error('No se pudo descargar el TLE de la ISS.');
+        }
+
+        async function calculateOrbit() {
+            if (!isOrbitVisible) return;
+
+            try {
+                const satrec = await getSatrec();
+                const now = new Date();
+                let pastCoords = [];
+                let futureCoords = [];
+
+                for (let seconds = -ORBIT_BACK_MINUTES * 60; seconds <= ORBIT_FORWARD_MINUTES * 60; seconds += ORBIT_STEP_SECONDS) {
+                    const date = new Date(now.getTime() + seconds * 1000);
+                    const sample = getSatelliteGeodetic(satrec, date);
+                    if (!sample) continue;
+
+                    const point = { lat: sample.lat, lng: sample.lng };
+                    if (seconds <= 0) pastCoords.push(point);
+                    if (seconds >= 0) futureCoords.push(point);
+                }
+
+                orbitPaths = [
+                    ...splitByAntimeridian(pastCoords, 'past'),
+                    ...splitByAntimeridian(futureCoords, 'future')
+                ];
+
+                renderPaths();
+            } catch (e) {
+                console.error('Error calculando órbita:', e);
+            }
+        }
+
+        function splitByAntimeridian(coords, type) {
+            let segments = [];
+            let current = [];
+            for (let i = 0; i < coords.length; i++) {
+                if (i > 0 && Math.abs(coords[i].lng - coords[i - 1].lng) > 180) {
+                    if (current.length > 1) segments.push({ type, coords: current });
+                    current = [];
+                }
+                current.push(coords[i]);
+            }
+            if (current.length > 1) segments.push({ type, coords: current });
+            return segments;
+        }
+
+        function getSatelliteGeodetic(satrec, date) {
+            const propagated = satellite.propagate(satrec, date);
+            if (!propagated || !propagated.position) return null;
+            const gmst = satellite.gstime(date);
+            const positionGd = satellite.eciToGeodetic(propagated.position, gmst);
+            return {
+                lat: rad2deg(positionGd.latitude),
+                lng: normalizeLng(rad2deg(positionGd.longitude)),
+                altitude: positionGd.height,
+                positionEci: propagated.position
+            };
+        }
+
+        // --- PINTAR RUTAS EN EL GLOBO ---
+        function renderPaths() {
+            let activePaths = [];
+            if (showingBorders) activePaths = activePaths.concat(borderPaths);
+            if (isOrbitVisible) activePaths = activePaths.concat(orbitPaths);
+            activePaths = activePaths.concat(visibilityConePaths, visiblePassPaths);
+
+            const preparedPaths = activePaths.map(path => ({
+                ...path,
+                coords: path.coords.map(point => ({
+                    ...point,
+                    alt: getPathAltitude(path.type)
+                }))
+            }));
+
+            world.pathsData(preparedPaths)
+                 .pathPoints('coords')
+                 .pathPointLat('lat')
+                 .pathPointLng('lng')
+                 .pathPointAlt('alt')
+                 .pathResolution(1)
+                 .pathColor(d => {
+                     if (d.type === 'border') return currentMapType === 'relief' ? '#101010' : '#d8e6ff';
+                     if (d.type === 'past') return '#ff1f1f';
+                     if (d.type === 'future') return '#21ff4b';
+                     if (d.type === 'visibility') return '#00ffff';
+                     if (d.type === 'visiblePass') return '#00ccff';
+                     return '#ffffff';
+                 })
+                 .pathStroke(d => {
+                     if (d.type === 'border') return currentMapType === 'relief' ? 0.18 : null;
+                     if (d.type === 'visibility') return 0.22;
+                     if (d.type === 'visiblePass') return 0.55;
+                     if (d.type === 'past' || d.type === 'future') return 0.45;
+                     return 0.3;
+                 })
+                 .pathDashLength(d => d.type === 'visibility' ? 0.035 : 1)
+                 .pathDashGap(d => d.type === 'visibility' ? 0.018 : 0)
+                 .pathDashAnimateTime(0)
+                 .pathTransitionDuration(0);
+        }
+
+        function getPathAltitude(type) {
+            if (type === 'border') return 0.006;
+            if (type === 'visibility') return 0.018;
+            if (type === 'visiblePass') return 0.075;
+            return 0.06;
+        }
+
+        function toggleOrbit() {
+            isOrbitVisible = !isOrbitVisible;
+            const btn = document.getElementById('btn-orbit');
+            btn.innerHTML = isOrbitVisible ? '🔴🟢 Órbita ISS: ACTIVADA' : '🔴🟢 Órbita ISS: DESACTIVADA';
+
+            if (isOrbitVisible) {
+                calculateOrbit();
+                clearInterval(orbitInterval);
+                orbitInterval = setInterval(calculateOrbit, ORBIT_REFRESH_MS);
+            } else {
+                orbitPaths = [];
+                clearInterval(orbitInterval);
+                renderPaths();
+            }
+        }
+
+        // --- TRACKER EN DIRECTO DE LA ISS ---
+        async function fetchISSPosition() {
+            try {
+                const response = await fetch(`https://api.wheretheiss.at/v1/satellites/${ISS_NORAD_ID}`);
+                if (!response.ok) throw new Error('API de posición no disponible');
+                const data = await response.json();
+
+                if (!Number.isFinite(data.latitude) || !Number.isFinite(data.longitude)) {
+                    throw new Error('La API devolvió coordenadas no válidas');
+                }
+
+                issData = {
+                    kind: 'iss',
+                    lat: Number(data.latitude),
+                    lng: normalizeLng(Number(data.longitude)),
+                    altitude: Number(data.altitude) || 420
+                };
+                renderHtmlMarkers();
+                return;
+            } catch (apiError) {
+                console.warn('No se pudo actualizar la posición ISS desde API directa. Se intenta TLE:', apiError);
+            }
+
+            try {
+                const satrec = await getSatrec();
+                const sample = getSatelliteGeodetic(satrec, new Date());
+                if (!sample) throw new Error('No se pudo propagar la ISS con TLE.');
+                issData = {
+                    kind: 'iss',
+                    lat: sample.lat,
+                    lng: sample.lng,
+                    altitude: sample.altitude || 420
+                };
+                renderHtmlMarkers();
+            } catch (tleError) {
+                console.error('No se pudo obtener la posición de la ISS:', tleError);
+            }
+        }
+
+        fetchISSPosition();
+        setInterval(fetchISSPosition, 3000);
+
+        // --- INTERFAZ GENERAL ---
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
+
+        function toggleBorders() {
+            showingBorders = !showingBorders;
+            document.getElementById('btn-borders').innerHTML = showingBorders ? '🗺️ Fronteras: ACTIVADO' : '🗺️ Fronteras: DESACTIVADO';
+            renderPaths();
+        }
+
+        function centerOnISS() {
+            if (!issData) {
+                fetchISSPosition();
+                return;
+            }
+            world.pointOfView({ lat: issData.lat, lng: issData.lng, altitude: 1.5 }, 1000);
+            toggleMenu();
+        }
+
+        function toggleISSDetails() {
+            if (!isOrbitVisible) toggleOrbit();
+            if (!isCameraVisible) openCameraByIndex(0);
+        }
+
+        function openModal(modalId) {
+            closeModals();
+            document.getElementById(modalId).classList.add('active');
+            if(document.getElementById('side-menu').classList.contains('open')) toggleMenu();
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        }
+
+        // --- CÁMARAS ---
+        function initCameraMenu() {
+            const cameraList = document.getElementById('cameraList');
+            cameraList.innerHTML = '';
+            cameraStreams.forEach((camera, index) => {
+                const btn = document.createElement('button');
+                btn.id = `camera-btn-${camera.id}`;
+                btn.innerHTML = `<b>${escapeHtml(camera.title)}</b><br><span style="font-size: 12px; color: #aaa;">${escapeHtml(camera.note)}</span>`;
+                btn.onclick = () => openCameraByIndex(index);
+                cameraList.appendChild(btn);
+            });
+        }
+
+        function buildYoutubeEmbedUrl(videoId) {
+            const params = new URLSearchParams({
+                autoplay: '1',
+                mute: '1',
+                playsinline: '1',
+                enablejsapi: '1',
+                rel: '0',
+                modestbranding: '1'
+            });
+            if (location.protocol.startsWith('http')) {
+                params.set('origin', location.origin);
+            }
+            return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+        }
+
+        function openCameraByIndex(index) {
+            currentCameraIndex = index;
+            loadCurrentCamera();
+            document.getElementById('cameraPanel').classList.add('active');
+            isCameraVisible = true;
+            updateCameraButtons();
+            updateCameraStatus();
+            restartCameraRotation();
+        }
+
+        function loadCurrentCamera() {
+            const camera = cameraStreams[currentCameraIndex];
+            const iframe = document.getElementById('cameraIframe');
+            iframe.src = buildYoutubeEmbedUrl(camera.videoId);
+            document.getElementById('cameraTitle').innerText = `📹 ${camera.title}`;
+            updateCameraButtons();
+        }
+
+        function updateCameraButtons() {
+            cameraStreams.forEach(camera => {
+                const btn = document.getElementById(`camera-btn-${camera.id}`);
+                if (btn) btn.classList.toggle('active', cameraStreams[currentCameraIndex].id === camera.id);
+            });
+        }
+
+        function updateCameraStatus() {
+            const status = document.getElementById('cameraStatus');
+            if (location.protocol === 'file:') {
+                status.innerHTML = '<span class="warning">Error 153 probable: estás abriendo el HTML como archivo local. YouTube necesita cabecera Referer. Abre el proyecto con Live Server, GitHub Pages o <code>python -m http.server 8000</code>.</span>';
+            } else {
+                status.innerText = 'Ventana arrastrable y redimensionable.';
+            }
+        }
+
+        function restartCameraRotation() {
+            clearInterval(rotationInterval);
+            clearInterval(rotationCountdownInterval);
+            cameraCountdownRemaining = cameraRotationSeconds;
+            updateCameraCountdown();
+
+            if (!rotateCameras || !isCameraVisible || cameraStreams.length < 2) return;
+
+            rotationInterval = setInterval(() => {
+                currentCameraIndex = (currentCameraIndex + 1) % cameraStreams.length;
+                loadCurrentCamera();
+                cameraCountdownRemaining = cameraRotationSeconds;
+                updateCameraCountdown();
+            }, cameraRotationSeconds * 1000);
+
+            rotationCountdownInterval = setInterval(() => {
+                cameraCountdownRemaining = Math.max(0, cameraCountdownRemaining - 1);
+                updateCameraCountdown();
+            }, 1000);
+        }
+
+        function setCameraRotationInterval(value) {
+            const seconds = Number(value);
+            if (!Number.isFinite(seconds) || seconds < 5) return;
+            cameraRotationSeconds = seconds;
+            cameraCountdownRemaining = seconds;
+            updateCameraCountdown();
+            restartCameraRotation();
+        }
+
+        function updateCameraCountdown() {
+            const text = rotateCameras
+                ? `Siguiente cambio: ${formatCameraInterval(cameraCountdownRemaining)}`
+                : 'Rotación pausada';
+            const menuCounter = document.getElementById('cameraMenuCountdown');
+            const panelCounter = document.getElementById('cameraStatus');
+            if (menuCounter) menuCounter.innerText = text;
+            if (panelCounter && location.protocol !== 'file:') panelCounter.innerText = text + ' · Ventana arrastrable y redimensionable.';
+        }
+
+        function formatCameraInterval(seconds) {
+            const s = Math.max(0, Math.round(Number(seconds) || 0));
+            if (s < 60) return `${s} s`;
+            const min = Math.floor(s / 60);
+            const rest = s % 60;
+            return rest ? `${min} min ${String(rest).padStart(2, '0')} s` : `${min} min`;
+        }
+
+        function toggleCameraRotation(event) {
+            if (event) event.stopPropagation();
+            rotateCameras = !rotateCameras;
+            updateRotationIcon();
+            restartCameraRotation();
+            updateCameraCountdown();
+        }
+
+        function updateRotationIcon() {
+            const btn = document.getElementById('btnRotationIcon');
+            if (!btn) return;
+            btn.classList.toggle('off', !rotateCameras);
+            btn.title = rotateCameras ? 'Rotación automática activada' : 'Rotación automática desactivada';
+            btn.innerText = rotateCameras ? '⟳' : '⤫';
+        }
+
+        function closeCameraPanel() {
+            isCameraVisible = false;
+            document.getElementById('cameraPanel').classList.remove('active');
+            document.getElementById('cameraIframe').src = '';
+            clearInterval(rotationInterval);
+            clearInterval(rotationCountdownInterval);
+        }
+
+        function initCameraPanelDrag() {
+            const panel = document.getElementById('cameraPanel');
+            const header = document.getElementById('cameraHeader');
+            let dragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            header.addEventListener('pointerdown', event => {
+                if (event.target.closest('button')) return;
+                const rect = panel.getBoundingClientRect();
+                panel.style.left = `${rect.left}px`;
+                panel.style.top = `${rect.top}px`;
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+                dragging = true;
+                offsetX = event.clientX - rect.left;
+                offsetY = event.clientY - rect.top;
+                header.setPointerCapture(event.pointerId);
+            });
+
+            header.addEventListener('pointermove', event => {
+                if (!dragging) return;
+                const width = panel.offsetWidth;
+                const height = panel.offsetHeight;
+                const maxLeft = Math.max(0, window.innerWidth - width - 8);
+                const maxTop = Math.max(0, window.innerHeight - height - 8);
+                const left = Math.min(Math.max(8, event.clientX - offsetX), maxLeft);
+                const top = Math.min(Math.max(8, event.clientY - offsetY), maxTop);
+                panel.style.left = `${left}px`;
+                panel.style.top = `${top}px`;
+            });
+
+            header.addEventListener('pointerup', event => {
+                dragging = false;
+                try { header.releasePointerCapture(event.pointerId); } catch (e) {}
+            });
+
+            header.addEventListener('pointercancel', () => {
+                dragging = false;
+            });
+
+            window.addEventListener('resize', keepCameraPanelInViewport);
+        }
+
+        function keepCameraPanelInViewport() {
+            const panel = document.getElementById('cameraPanel');
+            if (!panel.classList.contains('active') || !panel.style.left || !panel.style.top) return;
+            const rect = panel.getBoundingClientRect();
+            const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - rect.width - 8));
+            const top = Math.min(Math.max(8, rect.top), Math.max(8, window.innerHeight - rect.height - 8));
+            panel.style.left = `${left}px`;
+            panel.style.top = `${top}px`;
+        }
+
+        // --- PRÓXIMO PASO VISIBLE ---
+        async function calculateVisiblePass() {
+            const cityInput = document.getElementById('cityInput');
+            const resultDiv = document.getElementById('passResult');
+            const city = cityInput.value.trim() || 'Barcelona, España';
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `Calculando próximo paso visible sobre <b>${escapeHtml(city)}</b>...`;
+
+            try {
+                const location = await geocodeCity(city);
+                observerMarker = {
+                    kind: 'observer',
+                    lat: location.latitude,
+                    lng: location.longitude,
+                    name: location.displayName
+                };
+                renderObserverMarker();
+
+                const satrec = await getSatrec();
+                const passes = findVisiblePasses(satrec, location.latitude, location.longitude, 0, 48, 3);
+                drawVisibilityCone(location.latitude, location.longitude, (issData && issData.altitude) || 420);
+
+                if (!passes.length) {
+                    resultDiv.innerHTML = `<span class="warning">No he encontrado un paso visible claro sobre <b>${escapeHtml(location.displayName)}</b> en las próximas 48 horas.</span><br><br>He dejado dibujado el cono aproximado de visibilidad desde tu ubicación. Prueba con otra ciudad o baja temporalmente el umbral de elevación mínima si quieres ver pasos muy bajos sobre el horizonte.`;
+                    visiblePassPaths = [];
+                    renderPaths();
+                    world.pointOfView({ lat: location.latitude, lng: location.longitude, altitude: 1.8 }, 1000);
+                    return;
+                }
+
+                const nextPass = passes[0];
+                drawVisiblePassTrack(satrec, nextPass.start, nextPass.end);
+                renderPaths();
+                world.pointOfView({ lat: location.latitude, lng: location.longitude, altitude: 1.8 }, 1000);
+
+                resultDiv.innerHTML = renderPassResult(location, nextPass);
+            } catch (error) {
+                console.error(error);
+                resultDiv.innerHTML = `<span class="warning">No he podido calcular el paso: ${escapeHtml(error.message || error)}</span>`;
+            }
+        }
+
+        async function geocodeCity(city) {
+            const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=es&format=json`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Error consultando la geocodificación de la ciudad.');
+            const data = await response.json();
+            if (!data.results || !data.results.length) throw new Error('No se ha encontrado esa ciudad. Prueba con “Ciudad, País”.');
+
+            const loc = data.results[0];
+            const parts = [loc.name, loc.admin1, loc.country].filter(Boolean);
+            return {
+                latitude: loc.latitude,
+                longitude: loc.longitude,
+                displayName: parts.join(', ')
+            };
+        }
+
+        function findVisiblePasses(satrec, observerLat, observerLng, observerHeightKm, hoursAhead, maxPasses) {
+            const passes = [];
+            const now = new Date();
+            const end = now.getTime() + hoursAhead * 60 * 60 * 1000;
+            const stepMs = 15000;
+            let currentPass = null;
+            let previousDate = now;
+            let previousVisible = isVisibleAt(satrec, previousDate, observerLat, observerLng, observerHeightKm);
+
+            for (let time = now.getTime() + stepMs; time <= end; time += stepMs) {
+                const date = new Date(time);
+                const visible = isVisibleAt(satrec, date, observerLat, observerLng, observerHeightKm);
+
+                if (visible.ok && !previousVisible.ok) {
+                    const start = refineVisibilityBoundary(satrec, previousDate, date, observerLat, observerLng, observerHeightKm, true);
+                    const startSample = isVisibleAt(satrec, start, observerLat, observerLng, observerHeightKm);
+                    currentPass = {
+                        start,
+                        end: start,
+                        maxElevation: startSample.elevationDeg,
+                        maxAt: start,
+                        startAz: startSample.azimuthDeg,
+                        endAz: startSample.azimuthDeg,
+                        maxAz: startSample.azimuthDeg,
+                        durationSeconds: 0
+                    };
+                }
+
+                if (visible.ok && currentPass) {
+                    if (visible.elevationDeg > currentPass.maxElevation) {
+                        currentPass.maxElevation = visible.elevationDeg;
+                        currentPass.maxAt = date;
+                        currentPass.maxAz = visible.azimuthDeg;
+                    }
+                    currentPass.end = date;
+                    currentPass.endAz = visible.azimuthDeg;
+                }
+
+                if (!visible.ok && previousVisible.ok && currentPass) {
+                    const refinedEnd = refineVisibilityBoundary(satrec, previousDate, date, observerLat, observerLng, observerHeightKm, false);
+                    const endSample = isVisibleAt(satrec, refinedEnd, observerLat, observerLng, observerHeightKm);
+                    currentPass.end = refinedEnd;
+                    currentPass.endAz = endSample.azimuthDeg;
+                    currentPass.durationSeconds = Math.max(0, Math.round((currentPass.end - currentPass.start) / 1000));
+                    passes.push(currentPass);
+                    currentPass = null;
+                    if (passes.length >= maxPasses) break;
+                }
+
+                previousDate = date;
+                previousVisible = visible;
+            }
+
+            if (currentPass && passes.length < maxPasses) {
+                currentPass.durationSeconds = Math.max(0, Math.round((currentPass.end - currentPass.start) / 1000));
+                passes.push(currentPass);
+            }
+
+            return passes.filter(pass => pass.durationSeconds >= 20);
+        }
+
+        function refineVisibilityBoundary(satrec, lowDate, highDate, observerLat, observerLng, observerHeightKm, targetVisible) {
+            let low = lowDate.getTime();
+            let high = highDate.getTime();
+            for (let i = 0; i < 16; i++) {
+                const mid = new Date((low + high) / 2);
+                const midVisible = isVisibleAt(satrec, mid, observerLat, observerLng, observerHeightKm).ok;
+                if (midVisible === targetVisible) high = mid.getTime();
+                else low = mid.getTime();
+            }
+            return new Date(high);
+        }
+
+        function isVisibleAt(satrec, date, observerLat, observerLng, observerHeightKm) {
+            const propagated = satellite.propagate(satrec, date);
+            if (!propagated || !propagated.position) return { ok: false };
+
+            const gmst = satellite.gstime(date);
+            const positionEcf = satellite.eciToEcf(propagated.position, gmst);
+            const observerGd = {
+                latitude: deg2rad(observerLat),
+                longitude: deg2rad(observerLng),
+                height: observerHeightKm
+            };
+            const lookAngles = satellite.ecfToLookAngles(observerGd, positionEcf);
+            const elevationDeg = rad2deg(lookAngles.elevation);
+            const azimuthDeg = normalizeAzimuth(rad2deg(lookAngles.azimuth));
+            const observerSunAltitude = sunAltitudeDeg(date, observerLat, observerLng);
+            const sunlit = isSatelliteSunlit(propagated.position, date);
+
+            return {
+                ok: elevationDeg >= MIN_VISIBLE_ELEVATION_DEG && observerSunAltitude <= OBSERVER_SUN_MAX_ALTITUDE_DEG && sunlit,
+                elevationDeg,
+                azimuthDeg,
+                observerSunAltitude,
+                sunlit
+            };
+        }
+
+        function renderPassResult(location, pass) {
+            const duration = formatDuration(pass.durationSeconds);
+            const coneRadiusKm = Math.round(getVisibilityRadiusKm((issData && issData.altitude) || 420, MIN_VISIBLE_ELEVATION_DEG));
+            return `
+                <b>Próximo paso visible calculado para ${escapeHtml(location.displayName)}</b>
+                <table class="result-table">
+                    <tr><td>Empieza a verse</td><td>${formatDate(pass.start)} · azimut ${formatDeg(pass.startAz)}</td></tr>
+                    <tr><td>Máxima altura</td><td>${formatDate(pass.maxAt)} · elevación ${formatDeg(pass.maxElevation)} · azimut ${formatDeg(pass.maxAz)}</td></tr>
+                    <tr><td>Deja de verse</td><td>${formatDate(pass.end)} · azimut ${formatDeg(pass.endAz)}</td></tr>
+                    <tr><td>Duración visible</td><td>${duration}</td></tr>
+                    <tr><td>Condición usada</td><td>ISS sobre ${MIN_VISIBLE_ELEVATION_DEG}°, observador en crepúsculo/noche y estación iluminada por el Sol.</td></tr>
+                    <tr><td>Cono dibujado</td><td>Radio aproximado: ${coneRadiusKm.toLocaleString('es-ES')} km desde la ciudad.</td></tr>
+                </table>
+                <div class="small-note">La línea azul marca la subtrayectoria de la ISS durante ese tramo visible; el círculo turquesa marca el cono aproximado de visión desde la ciudad.</div>
+            `;
+        }
+
+        function drawVisibilityCone(lat, lng, issAltitudeKm) {
+            const angularRadiusRad = visibilityCentralAngleRad(issAltitudeKm, MIN_VISIBLE_ELEVATION_DEG);
+            const coords = [];
+            for (let bearing = 0; bearing <= 360; bearing += 4) {
+                coords.push(destinationPoint(lat, lng, rad2deg(angularRadiusRad), bearing));
+            }
+            visibilityConePaths = [{ type: 'visibility', coords }];
+        }
+
+        function drawVisiblePassTrack(satrec, startDate, endDate) {
+            const coords = [];
+            const stepMs = 15000;
+            for (let time = startDate.getTime(); time <= endDate.getTime(); time += stepMs) {
+                const sample = getSatelliteGeodetic(satrec, new Date(time));
+                if (sample) coords.push({ lat: sample.lat, lng: sample.lng });
+            }
+            const endSample = getSatelliteGeodetic(satrec, endDate);
+            if (endSample) coords.push({ lat: endSample.lat, lng: endSample.lng });
+            visiblePassPaths = splitByAntimeridian(coords, 'visiblePass');
+        }
+
+        function visibilityCentralAngleRad(issAltitudeKm, minElevationDeg) {
+            const r = EARTH_RADIUS_KM + Math.max(issAltitudeKm || 420, 300);
+            const elevation = deg2rad(minElevationDeg);
+            return Math.max(0, Math.acos((EARTH_RADIUS_KM / r) * Math.cos(elevation)) - elevation);
+        }
+
+        function getVisibilityRadiusKm(issAltitudeKm, minElevationDeg) {
+            return EARTH_RADIUS_KM * visibilityCentralAngleRad(issAltitudeKm, minElevationDeg);
+        }
+
+        // --- SOL / SOMBRA TERRESTRE ---
+        function isSatelliteSunlit(positionEciKm, date) {
+            const sun = sunEciVectorKm(date);
+            const sunUnit = normalizeVector(sun);
+            const sat = [positionEciKm.x, positionEciKm.y, positionEciKm.z];
+            const projection = dot(sat, sunUnit);
+            const satNormSq = dot(sat, sat);
+            const distanceToShadowAxisSq = satNormSq - projection * projection;
+            const inEarthCylinderShadow = projection < 0 && distanceToShadowAxisSq < EARTH_RADIUS_KM * EARTH_RADIUS_KM;
+            return !inEarthCylinderShadow;
+        }
+
+        function sunEciVectorKm(date) {
+            const jd = julianDate(date);
+            const n = jd - 2451545.0;
+            const L = deg2rad(normalizeDegrees(280.460 + 0.9856474 * n));
+            const g = deg2rad(normalizeDegrees(357.528 + 0.9856003 * n));
+            const lambda = L + deg2rad(1.915) * Math.sin(g) + deg2rad(0.020) * Math.sin(2 * g);
+            const epsilon = deg2rad(23.439 - 0.0000004 * n);
+            const distanceAu = 1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2 * g);
+            const auKm = 149597870.7;
+            const r = distanceAu * auKm;
+            return [
+                r * Math.cos(lambda),
+                r * Math.cos(epsilon) * Math.sin(lambda),
+                r * Math.sin(epsilon) * Math.sin(lambda)
+            ];
+        }
+
+        function sunAltitudeDeg(date, latDeg, lngDeg) {
+            const jd = julianDate(date);
+            const n = jd - 2451545.0;
+            const L = deg2rad(normalizeDegrees(280.460 + 0.9856474 * n));
+            const g = deg2rad(normalizeDegrees(357.528 + 0.9856003 * n));
+            const lambda = L + deg2rad(1.915) * Math.sin(g) + deg2rad(0.020) * Math.sin(2 * g);
+            const epsilon = deg2rad(23.439 - 0.0000004 * n);
+            const alpha = Math.atan2(Math.cos(epsilon) * Math.sin(lambda), Math.cos(lambda));
+            const delta = Math.asin(Math.sin(epsilon) * Math.sin(lambda));
+            const theta = deg2rad(normalizeDegrees(greenwichSiderealTimeDeg(jd) + lngDeg));
+            const hourAngle = theta - alpha;
+            const lat = deg2rad(latDeg);
+            const altitude = Math.asin(Math.sin(lat) * Math.sin(delta) + Math.cos(lat) * Math.cos(delta) * Math.cos(hourAngle));
+            return rad2deg(altitude);
+        }
+
+        function greenwichSiderealTimeDeg(jd) {
+            const T = (jd - 2451545.0) / 36525.0;
+            return normalizeDegrees(280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T - (T * T * T) / 38710000.0);
+        }
+
+        function julianDate(date) {
+            return date.getTime() / 86400000 + 2440587.5;
+        }
+
+        // --- GEOMETRÍA AUXILIAR ---
+        function destinationPoint(latDeg, lngDeg, angularDistanceDeg, bearingDeg) {
+            const lat1 = deg2rad(latDeg);
+            const lng1 = deg2rad(lngDeg);
+            const angularDistance = deg2rad(angularDistanceDeg);
+            const bearing = deg2rad(bearingDeg);
+
+            const lat2 = Math.asin(Math.sin(lat1) * Math.cos(angularDistance) + Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing));
+            const lng2 = lng1 + Math.atan2(
+                Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(lat1),
+                Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2)
+            );
+            return { lat: rad2deg(lat2), lng: normalizeLng(rad2deg(lng2)) };
+        }
+
+        function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+        function normalizeVector(v) {
+            const length = Math.sqrt(dot(v, v));
+            return [v[0] / length, v[1] / length, v[2] / length];
+        }
+        function deg2rad(deg) { return deg * Math.PI / 180; }
+        function rad2deg(rad) { return rad * 180 / Math.PI; }
+        function normalizeDegrees(deg) { return ((deg % 360) + 360) % 360; }
+        function normalizeLng(lng) { return ((lng + 540) % 360) - 180; }
+        function normalizeAzimuth(deg) { return normalizeDegrees(deg); }
+        function formatDeg(value) { return `${Number(value).toFixed(1)}°`; }
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('es-ES', {
+                dateStyle: 'medium',
+                timeStyle: 'medium'
+            }).format(date);
+        }
+        function formatDuration(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.round(seconds % 60);
+            return `${min} min ${String(sec).padStart(2, '0')} s`;
+        }
+
+        // --- ARRANQUE ---
+        initCameraMenu();
+        initCameraPanelDrag();
+        updateRotationIcon();
+        renderHtmlMarkers();
+        renderObserverMarker();
+        changeMapType('satellite');
+
+        // --- ARRANQUE FINAL ESTABLE ---
+        try {
+            applyMapAppearance();
+            renderPaths();
+            renderObserverMarker();
+        } catch (e) {
+            console.error('Error durante el arranque final:', e);
+            const box = document.getElementById('runtimeError');
+            if (box) {
+                box.style.display = 'block';
+                box.innerHTML = '<b>Error durante el arranque:</b><br>' + String(e.message || e);
+            }
+        }
+    </script>
+</body>
+</html>
