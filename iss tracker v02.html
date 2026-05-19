@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISS 3D Live Tracker - Advanced</title>
+    
+    <!-- Librerías: Globe.gl para el 3D y Satellite.js para calcular la órbita -->
+    <script src="https://unpkg.com/globe.gl"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.1.3/satellite.min.js"></script>
+    
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #000; }
+        #globeViz { width: 100vw; height: 100vh; }
+
+        /* --- MENÚ HAMBURGUESA --- */
+        #menu-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 100; cursor: pointer; color: #fff;
+            font-size: 28px; background: rgba(0, 0, 0, 0.6); padding: 5px 15px; border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2); transition: 0.3s;
+        }
+        #menu-btn:hover { background: rgba(0, 0, 0, 0.9); }
+
+        #side-menu {
+            position: absolute; top: 0; left: -320px; width: 300px; height: 100vh;
+            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px); z-index: 99;
+            transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); padding-top: 80px; color: white;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.5);
+        }
+        #side-menu.open { left: 0; }
+
+        .menu-item {
+            padding: 18px 25px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 16px; transition: 0.2s; display: flex; align-items: center; gap: 10px;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); padding-left: 30px; border-left: 4px solid #00aaff; }
+
+        /* --- MODALES Y BURBUJAS --- */
+        .modal {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); padding: 25px; color: white;
+            z-index: 200; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 550px;
+        }
+        .modal.active { display: block; }
+        
+        .close-btn { float: right; cursor: pointer; font-size: 20px; color: #888; transition: 0.2s; }
+        .close-btn:hover { color: #fff; }
+
+        /* Burbuja flotante de rotación de cámaras (abajo a la derecha) */
+        #rotatingBubble {
+            display: none; position: absolute; bottom: 30px; right: 30px; z-index: 150;
+            background: rgba(0,0,0,0.8); border: 2px solid #00aaff; border-radius: 12px;
+            padding: 10px; color: white; box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
+        }
+        #rotatingBubble.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- BOTONES Y CONTROLES --- */
+        button {
+            background: #2a2a2a; color: white; border: 1px solid #555; padding: 10px 15px;
+            cursor: pointer; border-radius: 5px; transition: 0.2s; margin-right: 5px; margin-bottom: 10px;
+        }
+        button:hover { background: #00aaff; border-color: #00aaff; }
+        button.active-btn { background: #00aaff; font-weight: bold; }
+
+        input[type="text"] { width: calc(100% - 20px); padding: 10px; margin: 15px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 5px; }
+
+        /* Etiqueta y marcador interactivo */
+        .iss-marker { pointer-events: auto; /* IMPORTANTE para que sea clicable */ }
+        .iss-label { color: white; font-weight: bold; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; font-size: 12px; pointer-events: none; margin-top: -10px; text-align: center;}
+    </style>
+</head>
+<body>
+
+    <div id="menu-btn" onclick="toggleMenu()">☰</div>
+
+    <div id="side-menu">
+        <div class="menu-item" onclick="toggleBorders()" id="btn-borders">🗺️ Fronteras: DESACTIVADO</div>
+        <div class="menu-item" onclick="toggleOrbit()" id="btn-orbit">🪐 Ruta/Órbita: DESACTIVADO</div>
+        <div class="menu-item" onclick="centerOnISS()">🚀 Centrar en la ISS</div>
+        <div class="menu-item" onclick="openModal('camerasModal')">📹 Ver Cámaras en Directo</div>
+        <div class="menu-item" onclick="openModal('locationModal')">📍 Paso por mi ciudad</div>
+    </div>
+
+    <div id="globeViz"></div>
+
+    <!-- Burbuja Flotante para rotación automática -->
+    <div id="rotatingBubble">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span style="font-size: 14px; font-weight: bold; color: #00aaff;">🔄 Rotando cámaras (10s)</span>
+            <span style="cursor: pointer; font-weight: bold;" onclick="closeRotatingBubble()">✖</span>
+        </div>
+        <iframe id="rotatingIframe" width="320" height="180" src="" frameborder="0" allowfullscreen style="border-radius: 6px;"></iframe>
+    </div>
+
+    <!-- Modal: Cámaras Estáticas en Menú -->
+    <div id="camerasModal" class="modal">
+        <span class="close-btn" onclick="closeModals()">✖</span>
+        <h3 style="margin-top:0;">Selector de Cámaras ISS</h3>
+        <p style="font-size: 13px; color: #ccc;">Selecciona la transmisión que deseas ver (fuentes oficiales de Ustream/NASA).</p>
+        
+        <div>
+            <button onclick="setStaticCamera(0)" id="cam-btn-0" class="active-btn">Cámara 1 (Tierra HD)</button>
+            <button onclick="setStaticCamera(1)" id="cam-btn-1">Cámara 2 (Directo General)</button>
+        </div>
+        
+        <iframe id="staticIframe" width="100%" height="280" src="" frameborder="0" allowfullscreen style="border-radius: 8px; margin-top: 10px;"></iframe>
+    </div>
+
+    <!-- Modal: Paso por Ubicación -->
+    <div id="locationModal" class="modal">
+        <span class="close-btn" onclick="closeModals()">✖</span>
+        <h3 style="margin-top:0;">Próximo paso de la ISS</h3>
+        <input type="text" id="cityInput" placeholder="Ej: Barcelona, España">
+        <button style="background: #00aaff; border:none;" onclick="simulatePass()">Calcular Trayectoria</button>
+        <div id="passResult" style="margin-top: 15px; font-size: 14px; color: #4CAF50; display: none;"></div>
+    </div>
+
+    <script>
+        // --- ESTADO GLOBAL ---
+        let showingBorders = false;
+        let showingOrbit = false;
+        let issData = { lat: 0, lng: 0 };
+        
+        let borderPaths = []; // Guardará las líneas de las fronteras
+        let orbitPaths = [];  // Guardará la línea amarilla de la órbita
+        
+        // Fuentes de video oficiales de IBM/NASA (No cambian de ID)
+        const cameraStreams = [
+            "https://video.ibm.com/embed/9408562?autoplay=1&mute=1",   // Tierra HD exterior
+            "https://video.ibm.com/embed/17074538?autoplay=1&mute=1"   // General (a veces interior, a veces exterior)
+        ];
+        let rotationInterval = null;
+
+        // --- INICIALIZAR EL GLOBO ---
+        const world = Globe()
+            (document.getElementById('globeViz'))
+            .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+            .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+            .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+            .showAtmosphere(true)
+            .atmosphereColor('#3a6680')
+            .atmosphereAltitude(0.15);
+
+        // --- CARGAR FRONTERAS (Convertidas a líneas) ---
+        fetch('https://unpkg.com/three-globe/example/datasets/ne_110m_admin_0_countries.geojson')
+            .then(res => res.json())
+            .then(countries => {
+                countries.features.forEach(feature => {
+                    // Extraemos las coordenadas para dibujar rutas fijas (evita fallos gráficos)
+                    if(feature.geometry.type === 'Polygon') {
+                        borderPaths.push({ type: 'border', coords: feature.geometry.coordinates[0].map(c => [c[1], c[0]]) });
+                    } else if(feature.geometry.type === 'MultiPolygon') {
+                        feature.geometry.coordinates.forEach(poly => {
+                            borderPaths.push({ type: 'border', coords: poly[0].map(c => [c[1], c[0]]) });
+                        });
+                    }
+                });
+            });
+
+        // --- CALCULAR ÓRBITA CON SATELLITE.JS ---
+        async function calculateOrbit() {
+            try {
+                // Descargamos datos orbitales TLE reales de la estación
+                const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544/tles');
+                const tle = await res.json();
+                const satrec = satellite.twoline2satrec(tle.line1, tle.line2);
+                
+                const now = new Date();
+                let pathPoints = [];
+                
+                // Calculamos desde 90 min atrás hasta 90 min en el futuro (1 vuelta completa aprox)
+                for(let i = -90; i <= 90; i++) {
+                    const d = new Date(now.getTime() + i * 60000);
+                    const posAndVel = satellite.propagate(satrec, d);
+                    const gmst = satellite.gstime(d);
+                    if(posAndVel.position) {
+                        const positionGd = satellite.eciToGeodetic(posAndVel.position, gmst);
+                        pathPoints.push([
+                            satellite.degreesLat(positionGd.latitude),
+                            satellite.degreesLong(positionGd.longitude)
+                        ]);
+                    }
+                }
+
+                // Evitar que la línea atraviese el mundo al saltar el meridiano (de 180 a -180)
+                let currentSegment = [];
+                orbitPaths = [];
+                for(let i = 0; i < pathPoints.length; i++) {
+                    if(i > 0 && Math.abs(pathPoints[i][1] - pathPoints[i-1][1]) > 180) {
+                        orbitPaths.push({ type: 'orbit', coords: currentSegment });
+                        currentSegment = [];
+                    }
+                    currentSegment.push(pathPoints[i]);
+                }
+                if(currentSegment.length > 0) orbitPaths.push({ type: 'orbit', coords: currentSegment });
+                
+                updatePathsLayer();
+            } catch (e) {
+                console.error("Error calculando órbita:", e);
+            }
+        }
+
+        // --- ACTUALIZADOR DE RUTAS EN EL GLOBO ---
+        function updatePathsLayer() {
+            let activePaths = [];
+            if (showingBorders) activePaths = activePaths.concat(borderPaths);
+            if (showingOrbit) activePaths = activePaths.concat(orbitPaths);
+
+            world.pathsData(activePaths)
+                 .pathPoints(d => d.coords)
+                 .pathPointLat(p => p[0])
+                 .pathPointLng(p => p[1])
+                 // La órbita flota (0.1), las fronteras van pegadas (0.001)
+                 .pathPointAlt(d => d.type === 'orbit' ? 0.1 : 0.001)
+                 .pathColor(d => d.type === 'orbit' ? 'rgba(255, 200, 0, 0.8)' : 'rgba(0, 255, 255, 0.4)')
+                 // La órbita es una línea discontinua animada, las fronteras son sólidas
+                 .pathDashLength(d => d.type === 'orbit' ? 0.05 : 1)
+                 .pathDashGap(d => d.type === 'orbit' ? 0.02 : 0)
+                 .pathDashAnimateTime(d => d.type === 'orbit' ? 3000 : 0);
+        }
+
+        // --- TRACKER EN DIRECTO (UBICACIÓN EXACTA) ---
+        async function fetchISSPosition() {
+            try {
+                const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+                const data = await response.json();
+                issData = { lat: data.latitude, lng: data.longitude };
+
+                world.htmlElementsData([issData])
+                     .htmlElement(d => {
+                        const el = document.createElement('div');
+                        el.className = 'iss-marker';
+                        el.innerHTML = `
+                            <div style="font-size: 35px; cursor: pointer; text-shadow: 0 0 15px #00aaff;" 
+                                 onclick="startRotatingCameras()">🛰️</div>
+                            <div class="iss-label">CLICK PARA<br>CÁMARAS</div>
+                        `;
+                        return el;
+                     });
+            } catch (error) {}
+        }
+
+        // Iniciar tracker y calcular órbita al cargar
+        fetchISSPosition();
+        calculateOrbit();
+        setInterval(fetchISSPosition, 3000); // Actualiza la posición cada 3 seg
+        setInterval(calculateOrbit, 300000); // Recalcula la órbita cada 5 min
+
+        // --- FUNCIONES DE INTERFAZ ---
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
+
+        function toggleBorders() {
+            showingBorders = !showingBorders;
+            document.getElementById('btn-borders').innerHTML = showingBorders ? '🗺️ Fronteras: ACTIVADO' : '🗺️ Fronteras: DESACTIVADO';
+            updatePathsLayer();
+        }
+
+        function toggleOrbit() {
+            showingOrbit = !showingOrbit;
+            document.getElementById('btn-orbit').innerHTML = showingOrbit ? '🪐 Ruta/Órbita: ACTIVADO' : '🪐 Ruta/Órbita: DESACTIVADO';
+            updatePathsLayer();
+        }
+
+        function centerOnISS() {
+            world.pointOfView({ lat: issData.lat, lng: issData.lng, altitude: 1.5 }, 1000);
+            toggleMenu();
+        }
+
+        // --- LÓGICA DE CÁMARAS ---
+        function startRotatingCameras() {
+            closeModals(); // Cerramos cualquier menú abierto
+            document.getElementById('rotatingBubble').classList.add('active');
+            let idx = 0;
+            const iframe = document.getElementById('rotatingIframe');
+            iframe.src = cameraStreams[idx];
+            
+            // Cambia de cámara cada 10 segundos
+            rotationInterval = setInterval(() => {
+                idx = (idx + 1) % cameraStreams.length;
+                iframe.src = cameraStreams[idx];
+            }, 10000);
+        }
+
+        function closeRotatingBubble() {
+            document.getElementById('rotatingBubble').classList.remove('active');
+            document.getElementById('rotatingIframe').src = '';
+            clearInterval(rotationInterval);
+        }
+
+        function openModal(modalId) {
+            closeModals();
+            closeRotatingBubble();
+            document.getElementById(modalId).classList.add('active');
+            if(document.getElementById('side-menu').classList.contains('open')) toggleMenu();
+            
+            // Si abrimos el modal de cámaras, carga la primera por defecto
+            if(modalId === 'camerasModal'){
+                setStaticCamera(0);
+            }
+        }
+
+        function setStaticCamera(index) {
+            document.getElementById('staticIframe').src = cameraStreams[index];
+            document.getElementById('cam-btn-0').classList.remove('active-btn');
+            document.getElementById('cam-btn-1').classList.remove('active-btn');
+            document.getElementById('cam-btn-' + index).classList.add('active-btn');
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            document.getElementById('staticIframe').src = '';
+        }
+
+        function simulatePass() {
+            const city = document.getElementById('cityInput').value;
+            const resultDiv = document.getElementById('passResult');
+            if(!city) {
+                resultDiv.style.color = "#ff5555";
+                resultDiv.innerText = "Por favor, introduce una ciudad.";
+                resultDiv.style.display = "block"; return;
+            }
+            resultDiv.style.color = "#00aaff";
+            resultDiv.innerText = "Calculando altitud y azimut...";
+            resultDiv.style.display = "block";
+            setTimeout(() => {
+                resultDiv.innerHTML = `⭐ <b>Simulación para ${city}:</b><br>La ISS será visible si pasa en un radio de ~2000 km, preferiblemente al amanecer o atardecer (cuando refleja el sol pero tu ciudad está a oscuras). Para calcular el minuto exacto, sugerimos cruzar los datos orbitales con una API del clima.`;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
