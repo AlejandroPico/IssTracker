@@ -1,12 +1,21 @@
 # ISS Tracker 3D
 
-Tracker 3D de la Estación Espacial Internacional desarrollado con **HTML**, **JavaScript**, **Globe.gl** y **Satellite.js**.
+Tracker 3D de la Estación Espacial Internacional desarrollado con **HTML**, **CSS**, **JavaScript modular**, **Globe.gl** y **Satellite.js**.
 
-El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción básica de pasos visibles por ciudad y acceso a emisiones en directo de NASA/ISS.
+El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción de pasos visibles por ciudad, telemetría, capa día/noche, trayectoria NASA OEM experimental y panel de cámaras en directo.
 
 ![Estado](https://img.shields.io/badge/estado-en%20desarrollo-blue)
-![Frontend](https://img.shields.io/badge/frontend-HTML%20%2B%20JavaScript-orange)
+![Frontend](https://img.shields.io/badge/frontend-HTML%20%2B%20CSS%20%2B%20JavaScript-orange)
 ![3D](https://img.shields.io/badge/3D-Globe.gl-00aaff)
+![Licencia](https://img.shields.io/badge/license-MIT-green)
+
+---
+
+## Demo
+
+El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Vercel** o cualquier servidor web estático.
+
+> Importante: no abras `index.html` directamente como `file://`. Usa un servidor local o GitHub Pages para evitar bloqueos de CORS, YouTube Embed y Service Worker.
 
 ---
 
@@ -14,92 +23,49 @@ El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un gl
 
 - Globo 3D interactivo con atmósfera y fondo espacial.
 - Seguimiento aproximado de la ISS en tiempo real.
-- Órbita diferenciada por colores:
+- Órbita TLE diferenciada por colores:
   - **Rojo**: recorrido ya realizado.
   - **Verde**: recorrido pendiente.
+- Trayectoria NASA OEM experimental:
+  - **Naranja**: tramo pasado OEM.
+  - **Verde lima**: tramo futuro OEM.
 - Cuatro modos visuales de mapa:
   - Satélite.
-  - Nubes casi en directo.
   - Político.
   - Relieve/topográfico.
-- Carga de teselas HD al hacer zoom en los modos compatibles.
-- Activación y desactivación de fronteras.
-- Centrado automático sobre la ISS.
-- Cálculo del próximo paso visible por ciudad.
-- Marcador de ciudad anclado al globo.
+  - Nocturno.
+- Capa de nubes casi en directo en modo satélite.
+- Fronteras y países opcionales.
+- Capa día/noche con terminador solar y zona nocturna aproximada.
+- Punto subsolar sobre el globo.
+- Marcador SVG propio para la ISS.
+- Centrado automático y manual sobre la estación.
+- Panel de telemetría:
+  - Latitud y longitud.
+  - Altitud.
+  - Velocidad aproximada.
+  - Visibilidad según fuente disponible.
+  - País o zona sobrevolada aproximada.
+  - Fuente de datos activa.
+  - Hora de actualización.
+- Cálculo de varios pasos visibles por ciudad.
+- Tabla de pasos futuros con inicio, máximo, fin, duración, elevación, dirección y calidad.
+- Marcador de ciudad sobre el globo.
 - Cono aproximado de visibilidad desde la ubicación elegida.
 - Línea del tramo visible previsto de la ISS.
-- Panel flotante de cámaras en directo:
+- Panel flotante de cámaras ISS/NASA:
+  - Fuentes seleccionables.
   - Ventana arrastrable.
   - Ventana redimensionable.
+  - Modo minimizar.
   - Rotación automática entre cámaras.
   - Controles internos del reproductor de YouTube.
+- Persistencia de preferencias con `localStorage`.
+- Base PWA con `manifest.webmanifest` y `sw.js`.
 
 ---
 
-## Captura conceptual
-
-El objetivo visual del proyecto es mantener una estética oscura, limpia y técnica, evitando interfaces recargadas. La interfaz principal se compone de:
-
-- Globo 3D a pantalla completa.
-- Menú lateral minimalista.
-- Controles de apariencia por iconos.
-- Panel de cámaras flotante tipo ventana.
-- Modal para cálculo de pasos visibles.
-
----
-
-## Tecnologías utilizadas
-
-| Tecnología | Uso |
-|---|---|
-| HTML5 | Estructura de la aplicación |
-| CSS3 | Estilos, paneles, menús y ventana flotante |
-| JavaScript | Lógica principal del tracker |
-| Globe.gl | Renderizado del globo 3D |
-| Three.js | Motor 3D utilizado por Globe.gl |
-| Satellite.js | Propagación orbital a partir de TLE |
-| WhereTheISS.at | Posición actual y TLE de la ISS |
-| Open-Meteo Geocoding | Conversión de ciudad a latitud/longitud |
-| YouTube Embed | Cámaras en directo NASA/ISS |
-| Esri map tiles | Teselas HD de satélite, mapa político y relieve |
-| Live Cloud Maps | Textura global de nubes casi en directo |
-
----
-
-## Cómo ejecutar el proyecto
-
-### Opción recomendada: servidor local
-
-No abras el archivo haciendo doble clic como `file://`, especialmente si quieres usar las cámaras de YouTube.
-
-Desde la carpeta del proyecto, ejecuta:
-
-```bash
-python -m http.server 8000
-```
-
-Después abre en el navegador:
-
-```text
-http://localhost:8000/iss_tracker_v10_camara_readme.html
-```
-
-También puedes usar extensiones como **Live Server** en Visual Studio Code.
-
----
-
-## Estructura sugerida del repositorio
-
-```text
-iss-tracker-3d/
-│
-├── iss_tracker_v10_camara_readme.html
-├── README.md
-└── LICENSE
-```
-
-En versiones futuras convendría separar el proyecto en varios archivos:
+## Estructura del repositorio
 
 ```text
 iss-tracker-3d/
@@ -107,72 +73,108 @@ iss-tracker-3d/
 ├── index.html
 ├── README.md
 ├── LICENSE
+├── manifest.webmanifest
+├── sw.js
+├── .gitignore
 │
 ├── css/
 │   └── styles.css
 │
-└── js/
-    ├── app.js
-    ├── cameras.js
-    ├── maps.js
-    ├── orbit.js
-    └── passes.js
+├── js/
+│   ├── main.js
+│   ├── config.js
+│   ├── state.js
+│   ├── utils.js
+│   ├── storage.js
+│   ├── ui.js
+│   ├── globe.js
+│   ├── maps.js
+│   ├── iss-api.js
+│   ├── orbit.js
+│   ├── passes.js
+│   ├── visibility.js
+│   ├── nasa-oem.js
+│   └── cameras.js
+│
+├── assets/
+│   ├── icons/
+│   │   └── iss.svg
+│   └── screenshots/
+│
+└── data/
+    └── README.md
 ```
-
-Por ahora se mantiene en un único HTML para que sea fácil de probar, mover y subir a GitHub Pages.
 
 ---
 
-## Uso básico
+## Arquitectura JavaScript
 
-1. Abre el proyecto desde un servidor local.
-2. Usa el menú lateral para cambiar el tipo de mapa.
-3. Activa o desactiva las fronteras.
-4. Activa la órbita de la ISS.
-5. Pulsa “Centrar en la ISS” para enfocar la cámara sobre la estación.
-6. En “Paso por mi ciudad”, introduce una ciudad, por ejemplo:
+| Módulo | Responsabilidad |
+|---|---|
+| `main.js` | Arranque de la aplicación. |
+| `config.js` | Constantes, URLs, mapas, cámaras y configuración orbital. |
+| `state.js` | Estado compartido de la aplicación. |
+| `utils.js` | Funciones matemáticas, fechas, HTML seguro, geodesia y utilidades. |
+| `storage.js` | Preferencias persistentes en `localStorage`. |
+| `ui.js` | Menú, modales, botones, telemetría, resultados y mensajes. |
+| `globe.js` | Inicialización y renderizado de Globe.gl. |
+| `maps.js` | Mapas, nubes, fronteras y países. |
+| `iss-api.js` | Posición ISS, TLE, propagación orbital y fallback. |
+| `orbit.js` | Órbita TLE pasada/futura. |
+| `passes.js` | Cálculo de pasos visibles por ciudad. |
+| `visibility.js` | Día/noche, terminador solar y círculo de visibilidad. |
+| `nasa-oem.js` | Carga y visualización experimental de trayectoria NASA OEM. |
+| `cameras.js` | Panel flotante de cámaras ISS/NASA. |
+
+---
+
+## Cómo ejecutar el proyecto
+
+### Opción recomendada: servidor local con Python
+
+Desde la carpeta del proyecto:
+
+```bash
+python -m http.server 8000
+```
+
+Después abre:
 
 ```text
-Barcelona, España
+http://localhost:8000/
 ```
 
-7. Abre una cámara desde la sección “Cámaras”.
-8. Arrastra la ventana de vídeo desde la barra superior.
-9. Cambia su tamaño desde el borde inferior derecho de la ventana.
-10. Usa el icono de rotación para activar o desactivar el cambio automático entre cámaras.
+### Opción alternativa: Live Server
+
+También puedes usar la extensión **Live Server** de Visual Studio Code.
+
+### Publicación en GitHub Pages
+
+1. Sube los archivos a tu repositorio.
+2. En GitHub, entra en **Settings → Pages**.
+3. Selecciona la rama que quieras publicar.
+4. Usa `/root` como carpeta de publicación si el proyecto está en la raíz.
 
 ---
 
-## Sobre el error 153 de YouTube
+## Fuentes de datos
 
-YouTube puede mostrar el **error 153** cuando el reproductor embebido no recibe una cabecera `HTTP Referer` o una identificación equivalente del cliente.
-
-Por ese motivo, el proyecto incluye:
-
-```html
-<meta name="referrer" content="strict-origin-when-cross-origin">
-```
-
-Y el iframe de YouTube utiliza:
-
-```html
-referrerpolicy="strict-origin-when-cross-origin"
-```
-
-Aun así, si el HTML se abre directamente como archivo local (`file://`), el navegador puede no enviar un `Referer` válido. La solución práctica es ejecutar el proyecto desde:
-
-- `http://localhost:8000`
-- Live Server de VS Code
-- GitHub Pages
-- Netlify
-- Vercel
-- Cualquier servidor web estático
+| Fuente | Uso |
+|---|---|
+| WhereTheISS.at | Posición actual de la ISS y TLE como fuente principal. |
+| CelesTrak | Fuente alternativa de TLE/GP para NORAD 25544. |
+| NASA ISS OEM | Trayectoria oficial en formato CCSDS OEM, cargada de forma experimental. |
+| Open-Meteo Geocoding | Conversión de ciudad a latitud/longitud. |
+| NASA / YouTube | Emisiones de vídeo en directo de la ISS y NASA. |
+| Globe.gl / Three.js | Renderizado 3D del globo. |
+| Esri | Teselas de mapa satélite, callejero y topográfico. |
+| Live Cloud Maps | Textura global de nubes casi en directo. |
 
 ---
 
 ## Cámaras en directo
 
-Las cámaras usadas son emisiones de NASA/ISS mediante YouTube Embed.
+El panel de cámaras usa reproductores embebidos de YouTube con emisiones públicas relacionadas con NASA/ISS.
 
 Es normal que la emisión pueda mostrar:
 
@@ -180,6 +182,20 @@ Es normal que la emisión pueda mostrar:
 - Pantalla gris o cortes temporales si la señal no está disponible.
 - Cambios de cámara realizados por NASA.
 - Sustitución o baja de una emisión si NASA cambia sus directos oficiales.
+- Error de YouTube si se abre el proyecto como `file://` o si el origen no cumple las políticas de embed.
+
+---
+
+## Sobre la trayectoria NASA OEM
+
+NASA publica la trayectoria de la ISS en formato **CCSDS Orbit Ephemeris Message** (`.txt` y `.xml`). Esta versión intenta cargar el TXT público actual desde navegador y dibujar un tramo cercano al presente.
+
+Notas importantes:
+
+- El formato OEM usa vectores de estado en un marco de referencia técnico.
+- La conversión visual en navegador se trata como aproximación divulgativa.
+- Si el navegador bloquea la petición o la fuente no responde, el proyecto sigue funcionando con TLE y Satellite.js.
+- El modo TLE sigue siendo la capa operativa principal.
 
 ---
 
@@ -190,69 +206,48 @@ Este proyecto es educativo y visual. No debe usarse para navegación, observaci�
 Limitaciones relevantes:
 
 - La predicción de paso visible es aproximada.
-- El modelo de sombra terrestre usado es simplificado.
-- La visibilidad real depende de nubosidad local, contaminación lumínica, brillo de la ISS, elevación, hora solar y condiciones atmosféricas.
-- Las texturas y teselas dependen de servicios externos.
+- El cálculo de sombra terrestre y terminador solar es aproximado.
+- El país sobrevolado se calcula con polígonos simplificados.
+- La trayectoria NASA OEM se muestra como capa experimental.
+- Las texturas, teselas, cámaras y APIs dependen de servicios externos.
 - Los directos de YouTube pueden fallar si cambia la política de embebido, la emisión oficial o el origen desde el que se ejecuta la página.
+- El Service Worker solo cachea archivos principales del proyecto, no garantiza disponibilidad offline de APIs ni mapas externos.
 
 ---
 
-## Mejoras futuras
+## Roadmap sugerido
 
-Ideas para próximas versiones:
-
-- Separar HTML, CSS y JavaScript en módulos.
-- Añadir configuración persistente con `localStorage`.
-- Permitir ciudad por defecto configurable.
-- Añadir selector de elevación mínima para pasos visibles.
-- Mostrar varios pasos futuros en una tabla.
-- Añadir modo nocturno/diurno sobre el globo.
-- Dibujar la zona real de iluminación solar.
-- Añadir panel de telemetría con altitud, velocidad y país/región sobrevolada.
-- Añadir pruebas unitarias para cálculos orbitales auxiliares.
-- Crear una versión instalable como PWA.
-
----
-
-## Fuentes y servicios externos
-
-- Globe.gl: https://globe.gl/
-- Satellite.js: https://github.com/shashwatak/satellite-js
-- WhereTheISS.at: https://wheretheiss.at/
-- Open-Meteo Geocoding API: https://open-meteo.com/en/docs/geocoding-api
-- Live Cloud Maps: https://github.com/matteason/live-cloud-maps
-- NASA HDEV / ISS live video: https://eol.jsc.nasa.gov/esrs/hdev/
-- YouTube IFrame Player API: https://developers.google.com/youtube/iframe_api_reference
-- YouTube embedded player requirements: https://developers.google.com/youtube/terms/required-minimum-functionality
-- Esri ArcGIS map tiles: https://www.arcgis.com/
+- Añadir tests unitarios para utilidades orbitales y geodesia.
+- Sustituir carga CDN por dependencias empaquetadas con Vite.
+- Añadir panel de eventos orbitales: nodo ascendente, nodo descendente y próxima salida/entrada de eclipse.
+- Añadir selector de ciudad por geolocalización del navegador.
+- Añadir notificaciones de próximos pasos visibles.
+- Guardar varias ciudades favoritas.
+- Añadir exportación de tabla de pasos a CSV.
+- Añadir capturas automáticas para README.
+- Integrar un dataset local de países para reducir dependencias externas.
 
 ---
 
 ## Licencia
 
-Este proyecto puede publicarse bajo licencia MIT si quieres permitir su reutilización con pocas restricciones.
+Este proyecto se distribuye bajo licencia **MIT**.
 
-Ejemplo de cabecera recomendada:
-
-```text
-MIT License
-
-Copyright (c) 2026 Alejandro Pico
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files, to deal in the Software
-without restriction, including without limitation the rights to use, copy,
-modify, merge, publish, distribute, sublicense, and/or sell copies of the Software.
-```
+MIT es una licencia abierta y permisiva: permite usar, copiar, modificar y redistribuir el código, incluso en otros proyectos, manteniendo el aviso de copyright y la licencia.
 
 ---
 
-## Estado del proyecto
+## Créditos y referencias
 
-Proyecto en evolución. La versión actual prioriza:
-
-- Estabilidad visual.
-- Mejor experiencia de mapa.
-- Órbita ISS más clara.
-- Panel de cámaras menos intrusivo.
-- Base preparada para futuras mejoras.
+- Globe.gl: https://globe.gl/
+- Satellite.js: https://github.com/shashwatak/satellite-js
+- WhereTheISS.at API: https://wheretheiss.at/w/developer
+- CelesTrak GP/TLE: https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE
+- NASA Spot The Station: https://www.nasa.gov/spot-the-station/
+- NASA ISS OEM TXT: https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.txt
+- NASA HDEV / ISS live video: https://eol.jsc.nasa.gov/esrs/HDEV/
+- NASA Live: https://www.nasa.gov/live/
+- Open-Meteo Geocoding API: https://open-meteo.com/en/docs/geocoding-api
+- YouTube IFrame Player API: https://developers.google.com/youtube/iframe_api_reference
+- Esri ArcGIS map tiles: https://www.arcgis.com/
+- Live Cloud Maps: https://github.com/matteason/live-cloud-maps

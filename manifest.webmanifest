@@ -1,0 +1,17 @@
+{
+  "name": "ISS Tracker 3D",
+  "short_name": "ISS Tracker",
+  "description": "Tracker 3D de la Estación Espacial Internacional con órbita, cámaras y telemetría.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#02040a",
+  "theme_color": "#05080d",
+  "icons": [
+    {
+      "src": "./assets/icons/iss.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
