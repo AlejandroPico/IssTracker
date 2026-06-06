@@ -18,6 +18,7 @@ export function initUI(prefs) {
   bind('btnNasaTrajectory', 'click', toggleNasaTrajectory);
   bind('btnNightShadow', 'click', toggleNightShadow);
   bind('btnSunMoon', 'click', toggleSunMoon);
+  bind('btnTelemetry', 'click', toggleTelemetryPanel);
   bind('btnCenterIss', 'click', centerOnISS);
   bind('btnOpenPasses', 'click', () => openModal('passModal'));
   bind('btnOpenCameras', 'click', openCameraPanel);
@@ -46,6 +47,7 @@ export function initUI(prefs) {
 
   updateLayerButtons();
   updateMapButtons();
+  updateTelemetryVisibility();
   updateTelemetryPanel();
 }
 
@@ -63,6 +65,24 @@ export function openModal(id) {
 
 export function closeModals() {
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+}
+
+function toggleTelemetryPanel() {
+  state.isTelemetryVisible = !state.isTelemetryVisible;
+  updateTelemetryVisibility();
+  savePreferences();
+}
+
+export function updateTelemetryVisibility() {
+  const panel = document.getElementById('statusPanel');
+  const btn = document.getElementById('btnTelemetry');
+  if (panel) panel.hidden = !state.isTelemetryVisible;
+  if (btn) {
+    btn.classList.toggle('active', state.isTelemetryVisible);
+    btn.textContent = state.isTelemetryVisible
+      ? 'Panel de telemetría: ACTIVADO'
+      : 'Panel de telemetría: DESACTIVADO';
+  }
 }
 
 export function setStatus(id, text) {
@@ -109,28 +129,28 @@ export function updateLayerButtons() {
     clouds.classList.toggle('disabled', !available);
     clouds.classList.toggle('active', state.cloudsEnabled && available);
     clouds.textContent = available
-      ? (state.cloudsEnabled ? '☁️ Nubes: ACTIVADAS' : '☁️ Nubes: DESACTIVADAS')
-      : '☁️ Nubes: NO DISPONIBLE';
+      ? (state.cloudsEnabled ? 'Nubes: ACTIVADAS' : 'Nubes: DESACTIVADAS')
+      : 'Nubes: NO DISPONIBLE';
   }
   if (borders) {
     borders.classList.toggle('active', state.showingBorders);
-    borders.textContent = state.showingBorders ? '🗺️ Fronteras: ACTIVADAS' : '🗺️ Fronteras: DESACTIVADAS';
+    borders.textContent = state.showingBorders ? 'Fronteras: ACTIVADAS' : 'Fronteras: DESACTIVADAS';
   }
   if (orbit) {
     orbit.classList.toggle('active', state.isOrbitVisible);
-    orbit.textContent = state.isOrbitVisible ? '🔴🟢 Órbita TLE: ACTIVADA' : '🔴🟢 Órbita TLE: DESACTIVADA';
+    orbit.textContent = state.isOrbitVisible ? 'Órbita TLE: ACTIVADA' : 'Órbita TLE: DESACTIVADA';
   }
   if (nasa) {
     nasa.classList.toggle('active', state.isNasaTrajectoryVisible);
-    nasa.textContent = state.isNasaTrajectoryVisible ? '🛰️ Trayectoria NASA OEM: ACTIVADA' : '🛰️ Trayectoria NASA OEM: DESACTIVADA';
+    nasa.textContent = state.isNasaTrajectoryVisible ? 'Trayectoria NASA OEM: ACTIVADA' : 'Trayectoria NASA OEM: DESACTIVADA';
   }
   if (nightShadow) {
     nightShadow.classList.toggle('active', state.isNightShadowVisible);
-    nightShadow.textContent = state.isNightShadowVisible ? '🌑 Sombra día/noche: ACTIVADA' : '🌑 Sombra día/noche: DESACTIVADA';
+    nightShadow.textContent = state.isNightShadowVisible ? 'Sombra día/noche: ACTIVADA' : 'Sombra día/noche: DESACTIVADA';
   }
   if (sunMoon) {
     sunMoon.classList.toggle('active', state.isSunMoonVisible);
-    sunMoon.textContent = state.isSunMoonVisible ? '☀︎☾ Sol/Luna: ACTIVADO' : '☀︎☾ Sol/Luna: DESACTIVADO';
+    sunMoon.textContent = state.isSunMoonVisible ? 'Sol/Luna: ACTIVADO' : 'Sol/Luna: DESACTIVADO';
   }
   savePreferences();
 }

@@ -42,10 +42,10 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - Sol y Luna situados a mayor altitud visual respecto a la esfera para reducir molestias sobre el mapa.
 - Marcadores visuales HTML/CSS para Sol y Luna, sin depender de emojis ni labels 3D.
 - Fase lunar aproximada y porcentaje de iluminación cuando la capa celeste está activa.
-- Marcador SVG propio para la ISS.
+- Marcador SVG superior de la ISS, sin punto ni etiqueta fija sobre el mapa.
 - Centrado automático y manual sobre la estación.
 - Zoom mucho más gradual, con más pasos de rueda y acercamiento extremo a la superficie sin atravesar el globo.
-- Panel de telemetría:
+- Panel de telemetría conmutable desde el menú:
   - Latitud y longitud.
   - Altitud.
   - Velocidad aproximada.
@@ -68,6 +68,19 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
   - Controles internos del reproductor de YouTube.
 - Persistencia de preferencias con `localStorage`.
 - Base PWA con `manifest.webmanifest` y `sw.js`.
+
+
+### Cambios de la v5
+
+- Eliminados los emoticonos del menú lateral, botones de capas, herramientas y estado.
+- Renovado el menú hamburguesa con estética más técnica y sobria.
+- Añadido control para activar/desactivar el panel fijo de telemetría.
+- Eliminado el punto y la etiqueta fija `ISS` del marcador orbital; ahora la estación se representa solo mediante SVG.
+- Sustituido el marcador anterior por una silueta superior más reconocible de la Estación Espacial Internacional.
+- Eliminados símbolos decorativos del marcador de ciudad y de los botones principales.
+- Actualizado `localStorage` a preferencias v5 y Service Worker a caché v5.
+
+El nuevo icono local de la ISS se ha redibujado como una silueta superior simplificada para marcador de mapa. La referencia documental usada para el cambio es la ilustración de vista superior de la ISS publicada por NASA y alojada en Wikimedia Commons como dominio público en EE. UU. No se ha incorporado el logotipo oficial de NASA ni insignias protegidas.
 
 ---
 
@@ -104,7 +117,8 @@ iss-tracker-3d/
 │
 ├── assets/
 │   └── icons/
-│       └── iss.svg
+│       ├── iss.svg
+│       └── iss-top-view.svg
 │
 └── data/
     └── README.md
@@ -181,7 +195,7 @@ También puedes usar la extensión **Live Server** de Visual Studio Code.
 
 El panel de cámaras usa reproductores embebidos de YouTube con emisiones públicas relacionadas con NASA/ISS.
 
-En la v4 la ventana mantiene el diseño minimalista de la v3, pero añade redimensionado manual desde las cuatro esquinas. La barra superior contiene únicamente selector de cámara, zona de arrastre y botones de rotación, minimizar y cerrar. La rotación automática cambia de cámara cada 30 segundos.
+En la v5 la ventana mantiene el diseño minimalista de la v3, pero añade redimensionado manual desde las cuatro esquinas. La barra superior contiene únicamente selector de cámara, zona de arrastre y botones de rotación, minimizar y cerrar. La rotación automática cambia de cámara cada 30 segundos.
 
 Es normal que la emisión pueda mostrar pantalla negra, gris, cortes temporales o errores de YouTube si el directo no está disponible, si NASA cambia la emisión o si el proyecto se abre como `file://`.
 

@@ -9,7 +9,7 @@
   <title>ISS Tracker 3D</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" href="./assets/icons/iss.svg" type="image/svg+xml" />
+  <link rel="icon" href="./assets/icons/iss-top-view.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./css/styles.css" />
 
   <script src="https://unpkg.com/globe.gl"></script>
@@ -17,40 +17,49 @@
   <script type="module" src="./js/main.js"></script>
 </head>
 <body>
-  <button id="menuBtn" class="menu-btn" type="button" aria-label="Abrir menú">☰</button>
+  <button id="menuBtn" class="menu-btn" type="button" aria-label="Abrir panel de control">
+    <span></span><span></span><span></span>
+  </button>
 
-  <aside id="sideMenu" class="side-menu" aria-label="Panel de controles">
+  <aside id="sideMenu" class="side-menu" aria-label="Panel de control">
+    <header class="menu-header">
+      <span class="eyebrow">MISSION CONTROL</span>
+      <h1>ISS Tracker 3D</h1>
+      <p>Control de capas, datos y visualización orbital.</p>
+    </header>
+
     <section class="menu-section">
-      <h2 class="section-title">🌍 Apariencia del globo</h2>
+      <h2 class="section-title">Apariencia del globo</h2>
       <div class="map-grid" role="group" aria-label="Modos de mapa">
-        <button class="map-icon active" type="button" data-map="satellite">🛰️ Satélite</button>
-        <button class="map-icon" type="button" data-map="political">🗺️ Político</button>
-        <button class="map-icon" type="button" data-map="relief">⛰️ Relieve</button>
-        <button class="map-icon" type="button" data-map="night">🌃 Nocturno</button>
+        <button class="map-icon active" type="button" data-map="satellite">Satélite</button>
+        <button class="map-icon" type="button" data-map="political">Político</button>
+        <button class="map-icon" type="button" data-map="relief">Relieve</button>
+        <button class="map-icon" type="button" data-map="night">Nocturno</button>
       </div>
       <p id="mapStatus" class="small-note">Satélite activo.</p>
     </section>
 
     <section class="menu-section compact-controls">
-      <h2 class="section-title">🧭 Capas</h2>
-      <button id="btnClouds" class="menu-item" type="button">☁️ Nubes: DESACTIVADAS</button>
-      <button id="btnBorders" class="menu-item" type="button">🗺️ Fronteras: DESACTIVADAS</button>
-      <button id="btnOrbit" class="menu-item" type="button">🔴🟢 Órbita TLE: DESACTIVADA</button>
-      <button id="btnNasaTrajectory" class="menu-item" type="button">🛰️ Trayectoria NASA OEM: DESACTIVADA</button>
-      <button id="btnNightShadow" class="menu-item" type="button">🌑 Sombra día/noche: DESACTIVADA</button>
-      <button id="btnSunMoon" class="menu-item" type="button">☀︎☾ Sol/Luna: DESACTIVADO</button>
+      <h2 class="section-title">Capas orbitales y geográficas</h2>
+      <button id="btnClouds" class="menu-item" type="button">Nubes: DESACTIVADAS</button>
+      <button id="btnBorders" class="menu-item" type="button">Fronteras: DESACTIVADAS</button>
+      <button id="btnOrbit" class="menu-item" type="button">Órbita TLE: DESACTIVADA</button>
+      <button id="btnNasaTrajectory" class="menu-item" type="button">Trayectoria NASA OEM: DESACTIVADA</button>
+      <button id="btnNightShadow" class="menu-item" type="button">Sombra día/noche: DESACTIVADA</button>
+      <button id="btnSunMoon" class="menu-item" type="button">Sol/Luna: DESACTIVADO</button>
     </section>
 
     <section class="menu-section compact-controls">
-      <h2 class="section-title">🎛️ Herramientas</h2>
-      <button id="btnCenterIss" class="menu-item" type="button">🚀 Centrar en la ISS</button>
-      <button id="btnOpenPasses" class="menu-item" type="button">📍 Pasos visibles por ciudad</button>
-      <button id="btnOpenCameras" class="menu-item" type="button">🎥 Cámaras ISS/NASA</button>
-      <button id="btnResetPreferences" class="menu-item subtle" type="button">♻️ Restablecer preferencias</button>
+      <h2 class="section-title">Herramientas</h2>
+      <button id="btnTelemetry" class="menu-item" type="button">Panel de telemetría: ACTIVADO</button>
+      <button id="btnCenterIss" class="menu-item" type="button">Centrar en la ISS</button>
+      <button id="btnOpenPasses" class="menu-item" type="button">Pasos visibles por ciudad</button>
+      <button id="btnOpenCameras" class="menu-item" type="button">Cámaras ISS/NASA</button>
+      <button id="btnResetPreferences" class="menu-item subtle" type="button">Restablecer preferencias</button>
     </section>
 
     <section class="menu-section">
-      <h2 class="section-title">📡 Estado de datos</h2>
+      <h2 class="section-title">Estado de datos</h2>
       <div id="dataStatus" class="data-status">
         <div><span class="status-dot pending"></span>ISS: inicializando…</div>
         <div><span class="status-dot pending"></span>TLE: pendiente</div>
@@ -72,7 +81,7 @@
   </section>
 
   <section id="passModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="passModalTitle">
-    <button class="close-btn" type="button" data-close-modal aria-label="Cerrar">✖</button>
+    <button class="close-btn" type="button" data-close-modal aria-label="Cerrar">Cerrar</button>
     <h2 id="passModalTitle">Próximos pasos visibles de la ISS</h2>
     <p class="modal-intro">Introduce una ciudad y calcula varios pasos aproximados. La visibilidad real depende de nubosidad, brillo, contaminación lumínica, elevación y hora solar.</p>
     <div class="form-grid">
@@ -98,9 +107,9 @@
       <div id="cameraTabs" class="camera-tabs" aria-label="Selector de cámaras"></div>
       <div class="camera-drag-zone" title="Arrastrar ventana"></div>
       <div class="camera-actions">
-        <button id="btnCameraRotate" type="button" title="Rotación automática">⟳</button>
-        <button id="btnCameraMinimize" type="button" title="Minimizar">—</button>
-        <button id="btnCameraClose" type="button" title="Cerrar">✖</button>
+        <button id="btnCameraRotate" type="button" title="Rotación automática">AUTO</button>
+        <button id="btnCameraMinimize" type="button" title="Minimizar">MIN</button>
+        <button id="btnCameraClose" type="button" title="Cerrar">X</button>
       </div>
     </div>
     <div id="cameraBody" class="camera-body">

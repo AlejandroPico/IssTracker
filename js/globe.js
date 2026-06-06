@@ -34,7 +34,7 @@ export function initGlobe() {
     .labelColor('color')
     .labelResolution(2)
     .labelIncludeDot(true)
-    .labelDotRadius(0.12)
+    .labelDotRadius(0.08)
     .labelsTransitionDuration(0)
     .pathPoints('coords')
     .pathPointLat('lat')
@@ -121,10 +121,8 @@ export function renderIssLayers() {
   const pointData = [];
   const labelData = [];
 
-  if (state.issData) {
-    pointData.push({ lat: state.issData.lat, lng: state.issData.lng, alt: 0.07, radius: 0.30, color: '#00b7ff' });
-    labelData.push({ lat: state.issData.lat, lng: state.issData.lng, alt: 0.105, text: 'ISS', size: 0.72, color: '#ffffff' });
-  }
+  // La ISS se representa únicamente con el marcador SVG.
+  // Se evita el punto/label adicional para mantener el mapa más sobrio.
   if (state.observerPoint) pointData.push(state.observerPoint);
   if (state.observerLabel) labelData.push(state.observerLabel);
 

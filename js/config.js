@@ -27,7 +27,7 @@ export const URLS = {
   corsProxyRaw: 'https://api.allorigins.win/raw?url=',
   countriesGeoJson: 'https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
   openMeteoGeocode: 'https://geocoding-api.open-meteo.com/v1/search',
-  issIcon: './assets/icons/iss.svg'
+  issIcon: './assets/icons/iss-top-view.svg'
 };
 
 export const MAPS = {

@@ -119,7 +119,7 @@ function findUpcomingPasses(satrec, lat, lng, hoursAhead, minElevation, maxPasse
 
 function drawObserver(location) {
   state.observerPoint = { lat: location.lat, lng: location.lng, alt: 0.014, radius: 0.22, color: '#00ffcc' };
-  state.observerLabel = { lat: location.lat, lng: location.lng, alt: 0.036, text: '📍 ' + location.name, size: 0.58, color: '#ffffff' };
+  state.observerLabel = { lat: location.lat, lng: location.lng, alt: 0.036, text: 'Ubicación · ' + location.name, size: 0.58, color: '#ffffff' };
   renderIssLayers();
 }
 

@@ -672,3 +672,163 @@ input:focus {
 }
 
 .camera-note { display: none; }
+
+/* v5 - Interfaz profesional sin emoticonos */
+.menu-btn {
+  width: 46px;
+  height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  gap: 0;
+  background: rgba(3, 8, 14, 0.82);
+  border-radius: 4px;
+  border-color: rgba(125, 214, 255, 0.26);
+}
+.menu-btn span {
+  display: block;
+  width: 19px;
+  height: 2px;
+  margin: 2px 0;
+  background: rgba(234, 248, 255, 0.92);
+  box-shadow: 0 0 10px rgba(89, 232, 255, 0.28);
+}
+.side-menu {
+  width: 358px;
+  left: -380px;
+  padding: 0 0 24px 0;
+  background: linear-gradient(180deg, rgba(5, 10, 17, 0.98), rgba(8, 13, 20, 0.94));
+  border-right: 1px solid rgba(89, 232, 255, 0.16);
+}
+.menu-header {
+  padding: 82px 22px 20px;
+  border-bottom: 1px solid rgba(89, 232, 255, 0.12);
+  background:
+    linear-gradient(90deg, rgba(0, 170, 255, 0.10), transparent 58%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 28px);
+}
+.menu-header .eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--cyan);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+.menu-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+.menu-header p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.menu-section {
+  padding: 17px 20px 20px;
+  border-bottom: 1px solid rgba(89, 232, 255, 0.09);
+}
+.section-title {
+  color: rgba(234, 248, 255, 0.84);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.map-grid {
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+.map-icon,
+.menu-item {
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.11);
+  font-size: 12px;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+.map-icon {
+  padding: 11px 12px;
+  text-align: left;
+}
+.menu-item {
+  padding: 12px 12px;
+}
+.map-icon:hover,
+.menu-item:hover {
+  background: rgba(0, 170, 255, 0.12);
+  border-color: rgba(89, 232, 255, 0.34);
+  transform: none;
+}
+.map-icon.active,
+.menu-item.active {
+  background: linear-gradient(90deg, rgba(0, 170, 255, 0.22), rgba(0, 170, 255, 0.06));
+  border-color: rgba(89, 232, 255, 0.48);
+  box-shadow: inset 3px 0 0 rgba(89, 232, 255, 0.84);
+}
+.small-note,
+.data-status,
+.modal-intro {
+  font-size: 11px;
+}
+.status-panel {
+  border-radius: 4px;
+  background: rgba(5, 10, 17, 0.84);
+  border-color: rgba(89, 232, 255, 0.18);
+}
+.status-panel[hidden] {
+  display: none !important;
+}
+.iss-marker {
+  width: 64px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 7px rgba(0, 170, 255, 0.88)) drop-shadow(0 0 18px rgba(0, 170, 255, 0.55));
+}
+.iss-marker img {
+  width: 64px;
+  height: 48px;
+  object-fit: contain;
+}
+.close-btn {
+  top: 14px;
+  right: 16px;
+  padding: 6px 9px;
+  color: rgba(234, 248, 255, 0.78);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.close-btn:hover {
+  color: #fff;
+  border-color: rgba(89, 232, 255, 0.36);
+  background: rgba(0, 170, 255, 0.12);
+}
+.camera-actions button {
+  min-width: 38px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.camera-tabs button {
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+@media (max-width: 760px) {
+  .side-menu {
+    width: min(358px, calc(100vw - 30px));
+    left: calc(-1 * min(358px, calc(100vw - 30px)) - 10px);
+  }
+}

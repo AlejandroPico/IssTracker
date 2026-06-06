@@ -7,6 +7,7 @@ export const state = {
   isNasaTrajectoryVisible: false,
   isNightShadowVisible: false,
   isSunMoonVisible: false,
+  isTelemetryVisible: true,
   hasAutoCenteredOnIss: false,
 
   issData: null,
