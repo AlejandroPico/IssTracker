@@ -61,10 +61,10 @@
     <section class="menu-section compact-controls info-grid-section">
       <h2 class="section-title">Información</h2>
       <div class="info-grid" aria-label="Enlaces de referencia">
+        <a href="https://www.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA</a>
         <a href="https://www.nasa.gov/international-space-station/" target="_blank" rel="noopener noreferrer">ISS</a>
-        <a href="https://es.wikipedia.org/wiki/Conjunto_de_dos_l%C3%ADneas" target="_blank" rel="noopener noreferrer">TLE</a>
-        <a href="https://www.nasa.gov/spot-the-station/" target="_blank" rel="noopener noreferrer">NASA OEM</a>
-        <a href="https://www.nasa.gov/spot-the-station/" target="_blank" rel="noopener noreferrer">Visibilidad</a>
+        <a href="https://celestrak.org/NORAD/documentation/tle-fmt.php" target="_blank" rel="noopener noreferrer">TLE</a>
+        <a href="https://www.nasa.gov/spot-the-station/" target="_blank" rel="noopener noreferrer">Ver ISS</a>
       </div>
     </section>
 
@@ -87,22 +87,22 @@
   <section id="passModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="passModalTitle">
     <button class="close-btn" type="button" data-close-modal aria-label="Cerrar">Cerrar</button>
     <h2 id="passModalTitle">Próximos pasos visibles de la ISS</h2>
-    <p class="modal-intro">Introduce una ciudad y calcula varios pasos aproximados. La visibilidad real depende de nubosidad, brillo, contaminación lumínica, elevación y hora solar.</p>
-    <div class="form-grid">
+    <p class="modal-intro">Calcula varios pasos aproximados y selecciona cuál representar sobre el globo.</p>
+    <div class="pass-controls">
       <label>
         Ciudad
-        <input type="text" id="cityInput" value="Barcelona, España" placeholder="Ej: Barcelona, España" />
+        <input type="text" id="cityInput" value="Barcelona, España" placeholder="Barcelona, España" />
       </label>
       <label>
-        Elevación mínima
+        Elevación
         <input type="number" id="minElevationInput" min="0" max="45" value="10" step="1" />
       </label>
       <label>
-        Horas a futuro
+        Horas
         <input type="number" id="hoursAheadInput" min="6" max="168" value="72" step="6" />
       </label>
+      <button id="btnCalculatePasses" class="action-btn" type="button">Calcular pasos</button>
     </div>
-    <button id="btnCalculatePasses" class="action-btn" type="button">Calcular pasos</button>
     <div id="passResult" class="result-card" hidden></div>
   </section>
 
@@ -123,8 +123,6 @@
     </div>
   </section>
 
-  <div id="toastArea" class="toast-area" aria-live="polite"></div>
-  <div id="errorBox" class="error-box" role="alert"></div>
 
   <noscript>
     <div class="noscript">Este proyecto necesita JavaScript para renderizar el globo y calcular la posición orbital.</div>

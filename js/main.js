@@ -1,5 +1,5 @@
 import { loadPreferences } from './storage.js';
-import { initUI, showError, updateLayerButtons } from './ui.js';
+import { initUI, updateLayerButtons } from './ui.js';
 import { initGlobe } from './globe.js';
 import { applyMapAppearance, loadCountryData } from './maps.js';
 import { startIssTracking } from './iss-api.js';
@@ -10,11 +10,10 @@ import { initCameras } from './cameras.js';
 import { state } from './state.js';
 
 window.addEventListener('error', event => {
-  showError('Error JavaScript: ' + event.message + '\n' + (event.filename || '') + ':' + (event.lineno || ''));
+  console.error('Error JavaScript:', event.message, event.filename, event.lineno);
 });
 window.addEventListener('unhandledrejection', event => {
-  const reason = event.reason?.message || String(event.reason);
-  showError('Promesa rechazada: ' + reason);
+  console.error('Promesa rechazada:', event.reason);
 });
 
 document.addEventListener('DOMContentLoaded', initApp);
@@ -42,7 +41,7 @@ async function initApp() {
       });
     }
   } catch (err) {
-    showError('No se pudo inicializar el tracker: ' + err.message);
+    console.error('No se pudo inicializar el tracker:', err);
     throw err;
   }
 }

@@ -1439,12 +1439,107 @@ input {
 .visible-pass-legend {
   color: #ff3df2;
 }
-.toast-area:empty,
-#errorBox:empty {
-  display: none;
-}
 @media (max-width: 760px) {
   .info-grid a { min-height: 32px; font-size: 9.5px; }
   .inline-data-status { font-size: 9.5px; }
   .inline-data-status div { grid-template-columns: 9px 58px minmax(0, 1fr); }
+}
+
+
+/* v10: limpieza de notificaciones, pasos seleccionables y marcadores verticales */
+/* v10: no hay sistema visual de notificaciones en pantalla. */
+
+#passModal {
+  width: min(1040px, calc(100vw - 28px));
+}
+
+.pass-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 112px 112px auto;
+  gap: 10px;
+  align-items: end;
+  margin: 14px 0 12px;
+}
+
+.pass-controls label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+}
+
+.pass-controls input {
+  min-height: 38px;
+}
+
+.pass-controls .action-btn {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(0, 170, 255, 0.56);
+  background: rgba(0, 170, 255, 0.22);
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+.pass-controls .action-btn:hover {
+  background: rgba(0, 170, 255, 0.34);
+}
+
+.compact-pass-summary {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pass-row {
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pass-row:hover,
+.pass-row:focus {
+  background: rgba(255, 43, 214, 0.08);
+  outline: none;
+}
+
+.pass-row.selected {
+  background: rgba(255, 43, 214, 0.13);
+  box-shadow: inset 3px 0 0 #ff2bd6;
+}
+
+.pass-number {
+  min-width: 30px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 43, 214, 0.38);
+  border-radius: 6px;
+  background: rgba(255, 43, 214, 0.08);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.pass-row.selected .pass-number {
+  border-color: #ff2bd6;
+  background: rgba(255, 43, 214, 0.22);
+}
+
+.observer-marker {
+  border-color: rgba(255, 209, 102, 0.48) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.36), 0 0 14px rgba(255, 177, 71, 0.20) !important;
+}
+
+@media (max-width: 760px) {
+  .pass-controls {
+    grid-template-columns: 1fr 88px 88px;
+  }
+  .pass-controls .action-btn {
+    grid-column: 1 / -1;
+  }
+  .pass-table {
+    min-width: 760px;
+  }
 }

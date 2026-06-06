@@ -54,9 +54,10 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
   - País o zona sobrevolada aproximada.
 - Cálculo de varios pasos visibles por ciudad.
 - Tabla de pasos futuros con inicio, máximo, fin, duración, elevación, dirección y calidad.
-- Marcador de ciudad sobre el globo.
+- Marcador de ciudad sobre el globo, con etiqueta HTML compatible con acentos y ñ.
+- Línea vertical fina para indicar el punto terrestre de la ciudad y de la ISS.
 - Cono aproximado de visibilidad desde la ubicación elegida.
-- Línea del tramo visible previsto de la ISS.
+- Línea del tramo visible previsto de la ISS, seleccionable entre varios pasos futuros.
 - Panel flotante de cámaras ISS/NASA:
   - Diseño minimalista centrado en el vídeo.
   - Selector de cámara integrado en la barra superior.
@@ -77,7 +78,7 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - `Estado datos` vuelve al menú lateral como bloque inferior compacto.
 - Herramientas queda reducido a cuatro acciones: telemetría, centrar ISS, pasos visibles y cámaras NASA.
 - Eliminados los botones `Estado datos` y `Reiniciar` del bloque de herramientas.
-- Añadida sección `Información` con cuatro enlaces breves: ISS, TLE, NASA OEM y visibilidad.
+- Añadida sección `Información` con cuatro enlaces breves revisados: NASA, ISS, TLE y Ver ISS.
 - Panel de telemetría sin contenedor exterior: quedan únicamente las cajas de datos.
 - Etiqueta de ubicación corregida mediante marcador HTML para evitar problemas con acentos y `ñ` en el renderizador del globo.
 - La ubicación muestra solo ciudad y país, sin prefijo `Ubicación`.
@@ -328,3 +329,14 @@ MIT es una licencia abierta y permisiva: permite usar, copiar, modificar y redis
 - NASA HDEV / ISS live video: https://eol.jsc.nasa.gov/esrs/hdev/
 - Open-Meteo Geocoding API: https://open-meteo.com/en/docs/geocoding-api
 - YouTube IFrame Player API: https://developers.google.com/youtube/iframe_api_reference
+
+### v10 · Correcciones de enlaces, pasos seleccionables y marcadores verticales
+
+- Eliminadas por completo las notificaciones visuales de arranque, errores y avisos.
+- Corregidos los enlaces de la sección Información con destinos distintos y funcionales.
+- La sección de pasos visibles coloca ciudad, elevación, horas y botón en una sola línea en escritorio.
+- Se muestran hasta ocho pasos y cada fila puede seleccionarse para representar ese paso concreto en el globo.
+- El tramo visible seleccionado se resalta en magenta con mayor grosor.
+- La ciudad y la ISS tienen una línea vertical fina en amarillo/naranja para indicar su punto sobre la superficie.
+- La etiqueta de ubicación usa HTML y conserva caracteres como acentos y ñ.
+- El estado NASA OEM queda exclusivamente en Estado datos.

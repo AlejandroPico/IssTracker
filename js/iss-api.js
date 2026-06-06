@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { EMBEDDED_TLE, ISS_REFRESH_MS, TLE_REFRESH_MS, URLS } from './config.js';
 import { normalizeLng, rad2deg, vectorMagnitude } from './utils.js';
-import { pointOfView, renderIssLayers } from './globe.js';
+import { pointOfView, renderIssLayers, renderPaths } from './globe.js';
 import { findCountryAt } from './maps.js';
 import { showError, showToast, updateDataStatus, updateTelemetryPanel } from './ui.js';
 
@@ -58,6 +58,7 @@ export async function ensureIssPosition() {
   };
 
   renderIssLayers();
+  renderPaths();
   updateTelemetryPanel();
   return state.issData;
 }

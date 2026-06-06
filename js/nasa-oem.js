@@ -45,7 +45,7 @@ export async function fetchNasaOem(force = false) {
 
   state.nasaOem.loaded = false;
   state.nasaOem.loading = false;
-  state.nasaOem.sourceLabel = 'no disponible';
+  state.nasaOem.sourceLabel = 'no disponible en navegador';
   state.nasaOem.error = new Error(errors.join(' | '));
   updateDataStatus();
   return [];
@@ -99,7 +99,7 @@ function parseOemXml(text) {
   const parseError = doc.querySelector('parsererror');
   if (parseError) throw new Error('XML OEM inválido');
 
-  doc.querySelectorAll('stateVector').forEach(node => {
+  doc.querySelectorAll('stateVector, STATE_VECTOR, state_vector').forEach(node => {
     const epoch = textOf(node, 'EPOCH') || textOf(node, 'epoch');
     const vector = makeVector(
       epoch,
@@ -117,8 +117,13 @@ function parseOemXml(text) {
 }
 
 function textOf(node, tagName) {
-  const child = node.getElementsByTagName(tagName)[0];
-  return child ? child.textContent.trim() : null;
+  const direct = node.getElementsByTagName(tagName)[0];
+  if (direct) return direct.textContent.trim();
+  const wanted = tagName.toLowerCase();
+  for (const child of node.children) {
+    if (child.tagName.toLowerCase() === wanted) return child.textContent.trim();
+  }
+  return null;
 }
 
 function makeVector(epochText, xText, yText, zText, vxText, vyText, vzText) {

@@ -87,22 +87,11 @@ export function setStatus(id, text) {
 
 export function showError(text) {
   console.error(text);
-  const box = document.getElementById('errorBox');
-  if (box) {
-    box.style.display = 'block';
-    box.textContent = text;
-    setTimeout(() => { box.style.display = 'none'; }, 12000);
-  }
+  updateDataStatus();
 }
 
 export function showToast(message, type = 'info') {
-  const area = document.getElementById('toastArea');
-  if (!area) return;
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  area.appendChild(toast);
-  setTimeout(() => toast.remove(), 5200);
+  console.debug(`[${type}] ${message}`);
 }
 
 export function updateMapButtons() {
@@ -206,7 +195,7 @@ function telemetryItem(label, value) {
   return `<div class="telemetry-item"><span class="telemetry-label">${escapeHtml(label)}</span><span class="telemetry-value" title="${escapeHtml(value)}">${escapeHtml(value)}</span></div>`;
 }
 
-export function renderPassResults(location, passes, minElevation, hoursAhead) {
+export function renderPassResults(location, passes, minElevation, hoursAhead, selectedIndex = 0) {
   const result = document.getElementById('passResult');
   if (!result) return;
   result.hidden = false;
@@ -218,9 +207,10 @@ export function renderPassResults(location, passes, minElevation, hoursAhead) {
 
   const rows = passes.map((pass, idx) => {
     const q = passQuality(pass.maxElevation);
+    const active = idx === selectedIndex ? ' selected' : '';
     return `
-      <tr>
-        <td>${idx + 1}</td>
+      <tr class="pass-row${active}" data-pass-index="${idx}" tabindex="0" role="button" aria-label="Mostrar paso ${idx + 1}">
+        <td><button type="button" class="pass-number" data-pass-index="${idx}">${idx + 1}</button></td>
         <td>${formatDate(pass.start)}</td>
         <td>${formatDate(pass.maxTime)}</td>
         <td>${formatDate(pass.end)}</td>
@@ -233,12 +223,12 @@ export function renderPassResults(location, passes, minElevation, hoursAhead) {
   }).join('');
 
   result.innerHTML = `
-    <div class="pass-summary">
-      <div><b>${escapeHtml(location.name)}</b></div>
-      <div>Elevación mínima usada: <b>${minElevation}°</b> · Ventana: <b>${hoursAhead} h</b> · Resultados: <b>${passes.length}</b></div>
+    <div class="pass-summary compact-pass-summary">
+      <div><b>${escapeHtml(location.name)}</b> · ${passes.length} pasos · mín. ${minElevation}° · ${hoursAhead} h</div>
+      <div>Selecciona una fila para representar ese paso sobre el globo.</div>
     </div>
     <div class="pass-table-wrap">
-      <table class="pass-table">
+      <table class="pass-table selectable-pass-table">
         <thead>
           <tr>
             <th>#</th>

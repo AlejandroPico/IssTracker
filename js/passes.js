@@ -24,9 +24,14 @@ export async function calculateVisiblePasses() {
     const satrec = await getSatrec();
     const passes = findUpcomingPasses(satrec, location.lat, location.lng, hoursAhead, minElevation, MAX_PASSES_TO_SHOW);
 
+    state.visiblePasses = passes;
+    state.visiblePassLocation = location;
+    state.visiblePassMinElevation = minElevation;
+    state.selectedVisiblePassIndex = 0;
     drawObserver(location);
-    if (passes[0]) drawVisibility(location, passes[0], minElevation);
-    renderPassResults(location, passes, minElevation, hoursAhead);
+    if (passes[0]) drawVisibility(location, passes[0], minElevation, 0);
+    renderPassResults(location, passes, minElevation, hoursAhead, 0);
+    bindPassSelection(location, passes, minElevation, hoursAhead);
   } catch (err) {
     if (result) result.innerHTML = 'No se pudo calcular el paso: ' + escapeHtml(err.message);
     showError('No se pudo calcular el paso: ' + err.message);
@@ -118,25 +123,51 @@ function findUpcomingPasses(satrec, lat, lng, hoursAhead, minElevation, maxPasse
 }
 
 function drawObserver(location) {
-  state.observerPoint = { lat: location.lat, lng: location.lng, alt: 0.014, radius: 0.18, color: '#00ffcc' };
+  state.observerPoint = null;
   state.observerLabel = null;
   state.observerMarker = {
     kind: 'observer',
     lat: location.lat,
     lng: location.lng,
-    htmlAlt: 0.045,
+    htmlAlt: 0.082,
     text: location.name
   };
   renderIssLayers();
 }
 
-function drawVisibility(location, pass, minElevation) {
+function drawVisibility(location, pass, minElevation, index = state.selectedVisiblePassIndex || 0) {
   const radiusKm = visibilityRadiusKm(420, minElevation);
   const circle = circleCoords(location.lat, location.lng, radiusKm, 160, 0.018);
   state.visibilityPaths = [{ type: 'visibility', coords: circle }];
   if (pass.track && pass.track.length > 1) {
-    state.visibilityPaths.push(...splitAntimeridian(pass.track, 'visiblePass'));
+    state.visibilityPaths.push(...splitAntimeridian(pass.track.map(p => ({ ...p, alt: 0.094 })), 'visiblePass'));
   }
+  state.selectedVisiblePassIndex = index;
   renderPaths();
   pointOfView({ lat: location.lat, lng: location.lng, altitude: 1.75 }, 0);
+}
+
+function bindPassSelection(location, passes, minElevation, hoursAhead) {
+  const result = document.getElementById('passResult');
+  if (!result) return;
+  const select = index => {
+    const pass = passes[index];
+    if (!pass) return;
+    drawVisibility(location, pass, minElevation, index);
+    renderPassResults(location, passes, minElevation, hoursAhead, index);
+    bindPassSelection(location, passes, minElevation, hoursAhead);
+  };
+  result.querySelectorAll('[data-pass-index]').forEach(el => {
+    el.addEventListener('click', ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      select(Number(el.dataset.passIndex));
+    });
+    el.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        select(Number(el.dataset.passIndex));
+      }
+    });
+  });
 }

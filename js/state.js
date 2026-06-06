@@ -38,7 +38,12 @@ export const state = {
   observerPoint: null,
   observerLabel: null,
   observerMarker: null,
+  observerVerticalPath: null,
   visibilityPaths: [],
+  visiblePasses: [],
+  visiblePassLocation: null,
+  visiblePassMinElevation: 10,
+  selectedVisiblePassIndex: 0,
 
   orbitTimer: null,
   issTimer: null,

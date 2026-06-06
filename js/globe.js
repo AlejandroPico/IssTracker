@@ -150,6 +150,8 @@ export function renderPaths() {
   if (state.isOrbitVisible) paths = paths.concat(state.orbitPaths);
   if (state.isNasaTrajectoryVisible) paths = paths.concat(state.nasaTrajectoryPaths);
   if (state.visibilityPaths.length) paths = paths.concat(state.visibilityPaths);
+  const verticalPaths = buildVerticalMarkerPaths();
+  if (verticalPaths.length) paths = paths.concat(verticalPaths);
 
   state.world.pathsData(paths)
     .pathColor(d => {
@@ -159,14 +161,17 @@ export function renderPaths() {
       if (d.type === 'nasaPast') return '#ff9f1c';
       if (d.type === 'nasaFuture') return '#b0ff00';
       if (d.type === 'terminator') return 'rgba(255, 230, 150, 0.82)';
-      if (d.type === 'visibility') return 'rgba(89, 232, 255, 0.72)';
-      if (d.type === 'visiblePass') return '#ff3df2';
+      if (d.type === 'visibility') return 'rgba(89, 232, 255, 0.56)';
+      if (d.type === 'visiblePass') return '#ff2bd6';
+      if (d.type === 'issVertical') return '#ffb347';
+      if (d.type === 'observerVertical') return '#ffd166';
       return '#ffffff';
     })
     .pathStroke(d => {
       if (d.type === 'past' || d.type === 'future' || d.type === 'nasaPast' || d.type === 'nasaFuture') return 0.62;
-      if (d.type === 'visiblePass') return 0.92;
-      if (d.type === 'visibility') return 0.22;
+      if (d.type === 'visiblePass') return 1.16;
+      if (d.type === 'issVertical' || d.type === 'observerVertical') return 0.32;
+      if (d.type === 'visibility') return 0.20;
       if (d.type === 'terminator') return 0.28;
       return 0.14;
     })
@@ -174,6 +179,29 @@ export function renderPaths() {
     .pathDashGap(d => (d.type === 'visibility' || d.type === 'terminator') ? 0.018 : 0)
     .pathDashAnimateTime(0)
     .pathTransitionDuration(0);
+}
+
+function buildVerticalMarkerPaths() {
+  const paths = [];
+  if (state.issData) {
+    paths.push({
+      type: 'issVertical',
+      coords: [
+        { lat: state.issData.lat, lng: state.issData.lng, alt: 0.012 },
+        { lat: state.issData.lat, lng: state.issData.lng, alt: 0.092 }
+      ]
+    });
+  }
+  if (state.observerMarker) {
+    paths.push({
+      type: 'observerVertical',
+      coords: [
+        { lat: state.observerMarker.lat, lng: state.observerMarker.lng, alt: 0.012 },
+        { lat: state.observerMarker.lat, lng: state.observerMarker.lng, alt: 0.074 }
+      ]
+    });
+  }
+  return paths;
 }
 
 export function renderPolygons() {
