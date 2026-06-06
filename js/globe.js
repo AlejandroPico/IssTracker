@@ -56,12 +56,14 @@ function configureControls() {
   try {
     const controls = state.world.controls();
     controls.enableDamping = true;
-    controls.dampingFactor = 0.055;
-    controls.rotateSpeed = 0.38;
-    // Zoom más fino: la rueda avanza menos por tick y la cámara no entra en el globo.
-    controls.zoomSpeed = 0.026;
-    controls.minDistance = 101.35;
-    controls.maxDistance = 1900;
+    controls.dampingFactor = 0.06;
+    controls.rotateSpeed = 0.36;
+    // Zoom muy fino: más pasos de rueda para recorrer desde vista global hasta superficie.
+    controls.zoomSpeed = 0.006;
+    // Globe.gl usa una esfera de radio ~100; este margen permite acercamiento extremo sin entrar en el globo.
+    controls.minDistance = 100.006;
+    // Vista lejana algo más contenida para no alejarse excesivamente del planeta.
+    controls.maxDistance = 1500;
     controls.screenSpacePanning = false;
     controls.update();
   } catch (err) {
@@ -70,7 +72,7 @@ function configureControls() {
 
   try {
     const camera = state.world.camera();
-    camera.near = 0.05;
+    camera.near = 0.001;
     camera.far = 8000;
     camera.updateProjectionMatrix();
   } catch (err) {

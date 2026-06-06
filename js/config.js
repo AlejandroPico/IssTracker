@@ -8,6 +8,7 @@ export const ISS_REFRESH_MS = 3000;
 export const TLE_REFRESH_MS = 10 * 60 * 1000;
 export const DAY_NIGHT_REFRESH_MS = 60 * 1000;
 export const NASA_OEM_REFRESH_MS = 6 * 60 * 60 * 1000;
+export const CAMERA_ROTATION_MS = 30 * 1000;
 export const DEFAULT_MIN_VISIBLE_ELEVATION_DEG = 10;
 export const DEFAULT_PASS_HOURS_AHEAD = 72;
 export const MAX_PASSES_TO_SHOW = 8;

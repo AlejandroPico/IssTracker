@@ -44,7 +44,7 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - Fase lunar aproximada y porcentaje de iluminación cuando la capa celeste está activa.
 - Marcador SVG propio para la ISS.
 - Centrado automático y manual sobre la estación.
-- Zoom más gradual y límite de cámara ajustado para evitar entrar dentro de la esfera.
+- Zoom mucho más gradual, con más pasos de rueda y acercamiento extremo a la superficie sin atravesar el globo.
 - Panel de telemetría:
   - Latitud y longitud.
   - Altitud.
@@ -62,9 +62,9 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
   - Diseño minimalista centrado en el vídeo.
   - Selector de cámara integrado en la barra superior.
   - Ventana arrastrable corregida mediante Pointer Events y `setPointerCapture`.
-  - Ventana redimensionable.
+  - Ventana redimensionable desde las cuatro esquinas, sin indicadores visuales intrusivos.
   - Modo minimizar.
-  - Rotación automática entre cámaras.
+  - Rotación automática entre cámaras cada 30 segundos.
   - Controles internos del reproductor de YouTube.
 - Persistencia de preferencias con `localStorage`.
 - Base PWA con `manifest.webmanifest` y `sw.js`.
@@ -181,7 +181,7 @@ También puedes usar la extensión **Live Server** de Visual Studio Code.
 
 El panel de cámaras usa reproductores embebidos de YouTube con emisiones públicas relacionadas con NASA/ISS.
 
-En la v3 se ha simplificado la ventana para que casi todo el espacio lo ocupe el vídeo. La barra superior contiene únicamente selector de cámara, zona de arrastre y botones de rotación, minimizar y cerrar.
+En la v4 la ventana mantiene el diseño minimalista de la v3, pero añade redimensionado manual desde las cuatro esquinas. La barra superior contiene únicamente selector de cámara, zona de arrastre y botones de rotación, minimizar y cerrar. La rotación automática cambia de cámara cada 30 segundos.
 
 Es normal que la emisión pueda mostrar pantalla negra, gris, cortes temporales o errores de YouTube si el directo no está disponible, si NASA cambia la emisión o si el proyecto se abre como `file://`.
 
@@ -218,6 +218,19 @@ Limitaciones relevantes:
 
 ---
 
+## Cambios destacados de la v4
+
+- Rotación automática de cámaras ajustada a **30 segundos**.
+- Ventana de cámaras redimensionable desde las cuatro esquinas: superior izquierda, superior derecha, inferior izquierda e inferior derecha.
+- Redimensionado personalizado con Pointer Events, sin indicadores visuales adicionales.
+- El panel de cámaras usa altura real flexible para que el vídeo aproveche mejor el espacio al redimensionar.
+- Zoom del globo mucho más fino: `zoomSpeed` reducido a `0.006`.
+- Acercamiento máximo ampliado: `minDistance` ajustado a `100.006` para aproximarse mucho más a la superficie sin entrar en la esfera.
+- Vista lejana contenida: `maxDistance` ajustado a `1500` para no alejarse tanto del planeta.
+- Cámara ajustada con `near = 0.001` para mejorar la visualización a distancias muy próximas.
+- Actualizado `localStorage` a preferencias v4.
+- Actualizado Service Worker a caché v4.
+
 ## Cambios destacados de la v3
 
 - Sol/Luna desactivados por defecto.
@@ -228,11 +241,9 @@ Limitaciones relevantes:
 - Panel de cámaras simplificado: barra superior compacta y vídeo como elemento principal.
 - Eliminados título, subtítulo y nota inferior del panel de cámaras.
 - Corregido el arrastre de la ventana de cámaras usando captura de puntero en la cabecera.
-- Zoom más gradual con `zoomSpeed` reducido.
-- Límite mínimo de cámara ajustado para evitar entrar dentro del globo.
 - Trayectoria NASA OEM suavizada mediante interpolación entre vectores.
-- Actualizado `localStorage` a preferencias v3.
-- Actualizado Service Worker a caché v3.
+
+---
 
 ## Roadmap sugerido
 

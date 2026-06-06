@@ -407,16 +407,37 @@ input:focus {
   right: 22px;
   top: 22px;
   z-index: 210;
+  display: flex;
+  flex-direction: column;
   width: min(620px, calc(100vw - 44px));
+  height: min(390px, calc(100vh - 44px));
   min-width: 320px;
   min-height: 220px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
   background: #02040a;
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: var(--shadow);
-  resize: both;
+  resize: none;
   overflow: hidden;
 }
+
+.camera-panel[hidden] { display: none; }
+
+.camera-resize-handle {
+  position: absolute;
+  z-index: 3;
+  width: 12px;
+  height: 12px;
+  background: transparent;
+  touch-action: none;
+}
+.camera-resize-nw { top: 0; left: 0; cursor: nwse-resize; }
+.camera-resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+.camera-resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.camera-resize-se { bottom: 0; right: 0; cursor: nwse-resize; }
+
 .camera-header {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -435,6 +456,8 @@ input:focus {
   cursor: move;
 }
 .camera-actions {
+  position: relative;
+  z-index: 4;
   display: flex;
   gap: 4px;
 }
@@ -450,6 +473,8 @@ input:focus {
   border-color: var(--accent);
 }
 .camera-body {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 0;
 }
 .camera-panel.minimized {
@@ -461,6 +486,8 @@ input:focus {
   display: none;
 }
 .camera-tabs {
+  position: relative;
+  z-index: 4;
   display: flex;
   gap: 4px;
   flex-wrap: nowrap;
@@ -475,7 +502,8 @@ input:focus {
 .video-frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
+  min-height: 170px;
   background: #000;
   border-radius: 0;
   overflow: hidden;
