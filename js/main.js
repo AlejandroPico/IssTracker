@@ -36,7 +36,7 @@ async function initApp() {
     });
 
     if (state.isOrbitVisible) calculateOrbit();
-    showToast('ISS Tracker inicializado.');
+    showToast('Sistema inicializado.');
 
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('./sw.js').catch(err => {

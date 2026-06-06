@@ -70,6 +70,16 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 
 
 
+### Cambios de la v8
+
+- Ventana “Estado de datos” reducida y compactada para que no ocupe más espacio del necesario.
+- Notificaciones inferiores rediseñadas con una estética más coherente con la interfaz técnica de la aplicación.
+- Anchura de notificaciones y errores reducida para evitar aspecto de burbuja grande.
+- Botones del panel de cámaras actualizados con iconos funcionales: rotación, minimizar y cerrar.
+- Mantenido el criterio general de no usar iconografía decorativa en el menú principal.
+- Actualizado `localStorage` a preferencias v8 y Service Worker a caché v8.
+
+
 ### Cambios de la v7
 
 - Nombre del proyecto unificado como **ISS Tracker** en el README, manifest, metadatos y cachés internas.
