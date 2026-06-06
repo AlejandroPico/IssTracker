@@ -1648,3 +1648,170 @@ input {
     padding: 3px 4px;
   }
 }
+
+
+/* v13: enlaces ampliados, pasos sin scroll vertical en escritorio, scrollbars minimalistas y README final */
+.side-menu {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125, 214, 255, 0.32) transparent;
+}
+.side-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.side-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.side-menu::-webkit-scrollbar-thumb {
+  background: rgba(125, 214, 255, 0.24);
+  border-radius: 999px;
+}
+.side-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(125, 214, 255, 0.42);
+}
+.info-grid,
+.info-grid.info-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+.info-grid a {
+  min-height: 23px;
+  padding: 3px 5px;
+  font-size: 7.8px;
+  letter-spacing: 0.035em;
+  border-radius: 5px;
+}
+.data-status-section {
+  padding-bottom: 7px;
+}
+#passModal {
+  width: min(1180px, calc(100vw - 20px));
+  max-height: calc(100vh - 20px);
+  overflow: hidden;
+  padding: 18px 20px 16px;
+}
+#passModal h2 {
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+#passModal .modal-intro {
+  margin: 0 42px 8px 0;
+  font-size: 11px;
+  line-height: 1.25;
+}
+#passModal .close-btn {
+  top: 10px;
+  right: 12px;
+  font-size: 14px;
+}
+.pass-controls {
+  margin: 8px 0 8px;
+  gap: 8px;
+  grid-template-columns: minmax(200px, 1fr) 96px 96px auto;
+}
+.pass-controls label {
+  gap: 3px;
+  font-size: 10px;
+}
+.pass-controls input,
+.pass-controls .action-btn {
+  min-height: 32px;
+  font-size: 10px;
+}
+.result-card {
+  margin-top: 8px;
+}
+.compact-pass-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 10.5px;
+  margin-bottom: 6px;
+}
+.pass-table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 43, 214, 0.28) transparent;
+}
+.pass-table-wrap::-webkit-scrollbar { height: 5px; }
+.pass-table-wrap::-webkit-scrollbar-track { background: transparent; }
+.pass-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(255, 43, 214, 0.28);
+  border-radius: 999px;
+}
+.pass-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.2px;
+}
+.pass-table th,
+.pass-table td {
+  padding: 5px 6px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.pass-number {
+  min-width: 25px;
+  height: 21px;
+  font-size: 10px;
+}
+.pass-pagination {
+  margin-top: 6px;
+  gap: 8px;
+  font-size: 10px;
+}
+.pass-page-btn {
+  width: 28px;
+  height: 23px;
+  border-radius: 6px;
+}
+@media (max-width: 900px) {
+  .side-menu {
+    width: min(340px, 92vw);
+  }
+  .info-grid,
+  .info-grid.info-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .info-grid a {
+    font-size: 8px;
+    min-height: 24px;
+  }
+  #passModal {
+    width: min(96vw, 920px);
+    padding: 16px;
+  }
+  .pass-controls {
+    grid-template-columns: minmax(170px, 1fr) 84px 84px;
+  }
+  .pass-controls .action-btn {
+    grid-column: 1 / -1;
+  }
+  .compact-pass-summary {
+    display: block;
+  }
+  .pass-table {
+    min-width: 760px;
+  }
+}
+@media (max-height: 720px) and (min-width: 761px) {
+  #passModal {
+    top: 10px;
+    transform: translateX(-50%);
+    max-height: calc(100vh - 20px);
+    padding: 14px 16px;
+  }
+  #passModal .modal-intro {
+    display: none;
+  }
+  .pass-table th,
+  .pass-table td {
+    padding: 4px 5px;
+    font-size: 9.6px;
+  }
+  .pass-controls input,
+  .pass-controls .action-btn {
+    min-height: 29px;
+  }
+}

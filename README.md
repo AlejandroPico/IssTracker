@@ -1,161 +1,141 @@
 # ISS Tracker
 
-Tracker de la Estación Espacial Internacional desarrollado con **HTML**, **CSS**, **JavaScript modular**, **Globe.gl** y **Satellite.js**.
+**ISS Tracker** es una aplicación web interactiva para seguir la posición de la Estación Espacial Internacional sobre un globo 3D, consultar su trayectoria orbital, visualizar pasos visibles desde una ciudad y acceder a cámaras y fuentes oficiales del sector espacial.
 
-El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción de pasos visibles por ciudad, telemetría, capa de sombra día/noche opcional, Sol/Luna opcionales con fase lunar, trayectoria NASA OEM experimental y panel de cámaras en directo.
-
-![Estado](https://img.shields.io/badge/estado-en%20desarrollo-blue)
-![Frontend](https://img.shields.io/badge/frontend-HTML%20%2B%20CSS%20%2B%20JavaScript-orange)
-![3D](https://img.shields.io/badge/3D-Globe.gl-00aaff)
-![Licencia](https://img.shields.io/badge/license-MIT-green)
-
----
-
-## Demo
-
-El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Vercel** o cualquier servidor web estático.
-
-> Importante: no abras `index.html` directamente como `file://`. Usa un servidor local o GitHub Pages para evitar bloqueos de CORS, YouTube Embed y Service Worker.
+El proyecto está diseñado como una herramienta visual, técnica y divulgativa: suficientemente clara para uso educativo, pero con una presentación sobria y modular propia de un repositorio público cuidado.
 
 ---
 
 ## Características principales
 
-- Globo 3D interactivo con atmósfera y fondo espacial.
-- Seguimiento aproximado de la ISS en tiempo real.
-- Órbita TLE diferenciada por colores:
-  - **Rojo**: recorrido ya realizado.
-  - **Verde**: recorrido pendiente.
-- Trayectoria NASA OEM experimental:
-  - **Naranja**: tramo pasado OEM.
-  - **Verde lima**: tramo futuro OEM.
-- Suavizado visual de la trayectoria OEM mediante interpolación geodésica entre vectores.
-- Cuatro modos visuales de mapa:
-  - Satélite.
-  - Político.
-  - Relieve/topográfico.
-  - Nocturno.
-- Capa de nubes casi en directo en modo satélite.
-- Fronteras y países opcionales.
-- Capa **Sombra día/noche** independiente y opcional, con oscurecimiento gradual del hemisferio nocturno.
-- Capa **Sol/Luna** independiente y opcional, desactivada por defecto.
-- Sol y Luna situados a mayor altitud visual respecto a la esfera para reducir molestias sobre el mapa.
-- Marcadores visuales HTML/CSS para Sol y Luna, sin depender de emojis ni labels 3D.
-- Fase lunar aproximada y porcentaje de iluminación cuando la capa celeste está activa.
-- Marcador SVG superior de la ISS, sin punto ni etiqueta fija sobre el mapa.
-- Centrado automático y manual sobre la estación.
-- Zoom mucho más gradual, con más pasos de rueda y acercamiento extremo a la superficie sin atravesar el globo.
-- Panel de telemetría conmutable desde el menú, reducido a datos vivos:
-  - Latitud.
-  - Longitud.
-  - Altitud.
-  - Velocidad aproximada.
-  - Visibilidad según fuente disponible.
-  - País o zona sobrevolada aproximada.
-- Cálculo de varios pasos visibles por ciudad.
-- Tabla de pasos futuros con inicio, máximo, fin, duración, elevación, dirección y calidad.
-- Resultados de pasos visibles paginados en bloques de 10 cuando hay muchos resultados.
-- Marcador de ciudad sobre el globo, con etiqueta HTML compatible con acentos y ñ.
-- Guías verticales amarillas, más visibles, para indicar el punto terrestre de la ciudad y de la ISS.
-- Cono aproximado de visibilidad desde la ubicación elegida.
-- Línea del tramo visible previsto de la ISS, seleccionable entre varios pasos futuros.
-- Panel flotante de cámaras ISS/NASA:
-  - Diseño minimalista centrado en el vídeo.
-  - Selector de cámara integrado en la barra superior.
-  - Ventana arrastrable corregida mediante Pointer Events y `setPointerCapture`.
-  - Ventana redimensionable desde las cuatro esquinas, sin indicadores visuales intrusivos.
-  - Modo minimizar.
-  - Rotación automática entre cámaras cada 30 segundos.
-  - Controles internos del reproductor de YouTube.
-- Persistencia de preferencias con `localStorage`.
-- Base PWA con `manifest.webmanifest` y `sw.js`.
+### Seguimiento de la ISS
 
+- Posición aproximada de la Estación Espacial Internacional en tiempo real.
+- Representación de la ISS mediante icono SVG local.
+- Guía vertical sobre el globo para identificar con claridad el punto de la Tierra sobrevolado.
+- Telemetría compacta con datos dinámicos:
+  - latitud,
+  - longitud,
+  - altitud,
+  - velocidad,
+  - visibilidad orbital,
+  - zona o país sobrevolado.
 
+### Globo 3D interactivo
 
-### Cambios de la v12
+- Globo 3D a pantalla completa con atmósfera y fondo espacial.
+- Navegación con ratón o controles táctiles.
+- Zoom progresivo y fino para acercarse a la superficie con mayor control.
+- Cuatro modos visuales:
+  - satélite,
+  - político,
+  - relieve,
+  - nocturno.
+- Carga de teselas HD en los modos compatibles.
+- Capas opcionales:
+  - nubes,
+  - fronteras,
+  - órbita TLE,
+  - trayectoria NASA OEM,
+  - sombra día/noche,
+  - Sol/Luna.
 
-- Sección `Información` ampliada a 10 enlaces oficiales en número par: NASA, ISS NASA, ESA, SpaceX, Blue Origin, JAXA, CNSA, ISRO, Arianespace y CSA.
-- `Estado datos` simplificado en una sola fila de tres columnas: ISS, TLE y NASA OEM.
-- Cada indicador de datos muestra solo luz y título; los detalles y errores aparecen en el tooltip al pasar el ratón.
-- Los pasos visibles se paginan en bloques de 10 resultados con controles minimalistas de anterior/siguiente.
-- Service Worker actualizado a caché v12.
+### Órbita y trayectoria
 
-### Cambios de la v11
+- Trayectoria orbital basada en TLE mediante Satellite.js.
+- Diferenciación visual entre recorrido pasado y futuro.
+- Soporte experimental para trayectoria NASA OEM cuando el navegador y las políticas CORS permiten cargarla.
+- Estado resumido de fuentes de datos en una única fila:
+  - ISS,
+  - TLE,
+  - NASA OEM.
+- Tooltip de detalle al pasar el ratón sobre cada fuente.
 
-- Guías verticales de ciudad e ISS unificadas en el mismo color amarillo.
-- Guías verticales más gruesas y visibles.
-- La guía vertical de la ISS se renderiza ahora junto al marcador principal mediante la capa de puntos, para quedar anclada y actualizada al mismo ritmo que la estación.
-- Actualización de posición de la ISS más frecuente para reducir la percepción de retraso entre marcador y guía vertical.
-- Sección `Información` revisada: se retira el enlace TLE problemático. En v12 se amplía a enlaces oficiales internacionales y privados del sector espacial.
-- Se mantiene la eliminación de notificaciones emergentes: la app no muestra avisos visuales de arranque ni errores flotantes.
-- Service Worker actualizado a caché v11.
+### Pasos visibles
 
-### Cambios de la v9
+- Cálculo de próximos pasos visibles desde una ciudad.
+- Búsqueda de ciudad mediante geocodificación.
+- Configuración de elevación mínima.
+- Configuración de horas a futuro.
+- Listado paginado de resultados en grupos de 10.
+- Selección de cualquier paso para representarlo sobre el globo.
+- Trayectoria visible destacada en color magenta/violeta.
+- Guía vertical de ubicación para marcar la ciudad elegida.
 
-- Eliminada la notificación de arranque de la aplicación.
-- NASA OEM ya no muestra avisos emergentes: cualquier fallo queda reflejado solo en `Estado datos`.
-- `Estado datos` vuelve al menú lateral como bloque inferior compacto.
-- Herramientas queda reducido a cuatro acciones: telemetría, centrar ISS, pasos visibles y cámaras NASA.
-- Eliminados los botones `Estado datos` y `Reiniciar` del bloque de herramientas.
-- Añadida sección `Información` con enlaces breves a fuentes oficiales. En la v12 se revisan y amplían con organismos y compañías espaciales internacionales.
-- Panel de telemetría sin contenedor exterior: quedan únicamente las cajas de datos.
-- Etiqueta de ubicación corregida mediante marcador HTML para evitar problemas con acentos y `ñ` en el renderizador del globo.
-- La ubicación muestra solo ciudad y país, sin prefijo `Ubicación`.
-- Trayectoria visible calculada para la ubicación destacada en magenta/violeta y con más grosor.
-- NASA OEM revisado: las URLs oficiales siguen siendo las enlazadas por NASA y se añaden más estrategias de carga mediante proxies CORS para entorno navegador.
+### Cámaras ISS/NASA
 
-### Cambios de la v7
+- Panel flotante para cámaras y emisiones relacionadas con NASA/ISS.
+- Ventana arrastrable y redimensionable desde las esquinas.
+- Controles compactos:
+  - rotación automática,
+  - minimizar,
+  - cerrar.
+- Rotación automática entre cámaras cada 30 segundos.
 
-- Nombre del proyecto unificado como **ISS Tracker** en el README, manifest, metadatos y cachés internas.
-- Menú lateral todavía más compacto para evitar scroll vertical en escritorio.
-- Icono hamburguesa redibujado con barras más equilibradas y espaciado superior/inferior coherente.
-- Secciones de capas y herramientas reorganizadas en rejillas 2x3.
-- Los botones de capas ya no muestran textos ACTIVADO/DESACTIVADO: el estado se comunica por el estilo activo del botón.
-- La sección permanente “Estado de datos” se ha retirado del menú y ahora se abre desde Herramientas.
-- Panel de telemetría rediseñado y reducido a datos dinámicos realmente útiles: latitud, longitud, altitud, velocidad, visibilidad y sobrevuelo.
-- Eliminados del panel de telemetría los textos fijos, atribuciones, fuente activa, hora de actualización, indicador LIVE, capas celestes y datos lunares no esenciales.
+### Interfaz
 
-### Cambios de la v6
-
-- Menú hamburguesa más compacto, con tres barras más juntas y proporción visual más discreta.
-- Cabecera lateral simplificada: se elimina `MISSION CONTROL`, se elimina el subtítulo y queda solo `ISS Tracker`.
-- El título del menú se alinea a la derecha del botón hamburguesa para evitar solapamientos visuales.
-- Eliminadas las descripciones de estado bajo los modos de mapa.
-- Los cuatro modos de apariencia del globo vuelven a mostrarse en una rejilla 2x2, con texto centrado vertical y horizontalmente.
-- Añadida una primera adaptación responsive para móvil: menú más compacto, paneles ajustados al viewport, cámara adaptada a pantalla estrecha y controles táctiles más consistentes.
-- Actualizado `localStorage` a preferencias v6 y Service Worker a caché v6.
-
-
-
-### Cambios de la v5
-
-- Eliminados los emoticonos del menú lateral, botones de capas, herramientas y estado.
-- Renovado el menú hamburguesa con estética más técnica y sobria.
-- Añadido control para activar/desactivar el panel fijo de telemetría.
-- Eliminado el punto y la etiqueta fija `ISS` del marcador orbital; ahora la estación se representa solo mediante SVG.
-- Sustituido el marcador anterior por una silueta superior más reconocible de la Estación Espacial Internacional.
-- Eliminados símbolos decorativos del marcador de ciudad y de los botones principales.
-- Actualizado `localStorage` a preferencias v5 y Service Worker a caché v5.
-
-El nuevo icono local de la ISS se ha redibujado como una silueta superior simplificada para marcador de mapa. La referencia documental usada para el cambio es la ilustración de vista superior de la ISS publicada por NASA y alojada en Wikimedia Commons como dominio público en EE. UU. No se ha incorporado el logotipo oficial de NASA ni insignias protegidas.
+- Menú lateral sobrio, compacto y sin iconografía decorativa.
+- Paneles minimalistas y estilo oscuro técnico.
+- Telemetría sin contenedor exterior, formada por cajas independientes.
+- Scrollbars minimalistas en zonas donde puedan aparecer por resolución reducida.
+- Adaptación inicial para pantallas móviles y portátiles.
+- PWA básica con `manifest.webmanifest` y `service worker`.
 
 ---
 
-## Estructura del repositorio
+## Fuentes de datos y servicios utilizados
+
+| Fuente | Uso |
+|---|---|
+| WhereTheISS.at | Posición actual y TLE de la ISS. |
+| CelesTrak | Fuente alternativa de TLE. |
+| NASA OEM | Trayectoria oficial experimental cuando está disponible desde navegador. |
+| Open-Meteo Geocoding | Conversión de ciudad a coordenadas. |
+| NASA / YouTube Embed | Cámaras y emisiones relacionadas con ISS/NASA. |
+| Esri / ArcGIS tiles | Teselas de mapa en modos satélite, político y relieve. |
+| Globe.gl | Renderizado del globo 3D. |
+| Satellite.js | Propagación orbital a partir de TLE. |
+
+La capa NASA OEM es experimental porque puede depender de políticas CORS, disponibilidad del origen y comportamiento del navegador. Cuando no está disponible, la aplicación mantiene la órbita TLE como fuente operativa.
+
+---
+
+## Enlaces de referencia incluidos
+
+El menú incorpora enlaces oficiales y de interés general relacionados con exploración espacial, ISS, agencias espaciales y operadores de lanzamiento:
+
+- NASA.
+- ISS NASA.
+- Spot the Station.
+- HDEV / vídeo ISS.
+- ESA.
+- ESA ISS.
+- JAXA.
+- JAXA ISS / Kibo.
+- ISRO.
+- CNSA.
+- Canadian Space Agency.
+- SpaceX.
+- Blue Origin.
+- Rocket Lab.
+- United Launch Alliance.
+- Arianespace.
+- ArianeGroup.
+- ESO.
+
+---
+
+## Estructura del proyecto
 
 ```text
 iss-tracker/
-│
 ├── index.html
 ├── README.md
 ├── LICENSE
 ├── manifest.webmanifest
 ├── sw.js
-├── .gitignore
-│
 ├── css/
 │   └── styles.css
-│
 ├── js/
 │   ├── main.js
 │   ├── config.js
@@ -171,12 +151,10 @@ iss-tracker/
 │   ├── visibility.js
 │   ├── nasa-oem.js
 │   └── cameras.js
-│
 ├── assets/
 │   └── icons/
 │       ├── iss.svg
 │       └── iss-top-view.svg
-│
 └── data/
     └── README.md
 ```
@@ -187,26 +165,26 @@ iss-tracker/
 
 | Módulo | Responsabilidad |
 |---|---|
-| `main.js` | Arranque de la aplicación. |
-| `config.js` | Constantes, URLs, mapas, cámaras y configuración orbital. |
+| `main.js` | Punto de entrada de la aplicación. |
+| `config.js` | Constantes, URLs, mapas, cámaras y parámetros orbitales. |
 | `state.js` | Estado compartido de la aplicación. |
-| `utils.js` | Funciones matemáticas, fechas, HTML seguro, geodesia e interpolación. |
-| `storage.js` | Preferencias persistentes en `localStorage`. |
-| `ui.js` | Menú, modales, botones, telemetría, resultados y mensajes. |
-| `globe.js` | Inicialización y renderizado de Globe.gl. |
-| `maps.js` | Mapas, nubes, fronteras y países. |
-| `iss-api.js` | Posición ISS, TLE, propagación orbital y fallback. |
-| `orbit.js` | Órbita TLE pasada/futura. |
-| `passes.js` | Cálculo de pasos visibles por ciudad. |
-| `visibility.js` | Sombra día/noche, Sol/Luna, fase lunar y círculo de visibilidad. |
-| `nasa-oem.js` | Carga y visualización experimental de trayectoria NASA OEM. |
-| `cameras.js` | Panel flotante de cámaras ISS/NASA. |
+| `utils.js` | Utilidades de fechas, coordenadas, HTML y formato. |
+| `storage.js` | Persistencia de preferencias en `localStorage`. |
+| `ui.js` | Menú, modales, telemetría, estado de datos y render de resultados. |
+| `globe.js` | Inicialización del globo, capas visuales y render principal. |
+| `maps.js` | Modos de mapa, nubes, fronteras y teselas. |
+| `iss-api.js` | Posición actual, TLE, fallback y propagación base. |
+| `orbit.js` | Órbita TLE, trayectoria NASA OEM y líneas orbitales. |
+| `passes.js` | Cálculo y selección de pasos visibles. |
+| `visibility.js` | Sombra día/noche, Sol/Luna y visibilidad. |
+| `nasa-oem.js` | Carga y análisis de datos NASA OEM. |
+| `cameras.js` | Panel de cámaras, rotación, arrastre y redimensionado. |
 
 ---
 
 ## Cómo ejecutar el proyecto
 
-### Opción recomendada: servidor local con Python
+### Opción recomendada: servidor local
 
 Desde la carpeta del proyecto:
 
@@ -220,150 +198,135 @@ Después abre:
 http://localhost:8000/
 ```
 
-### Opción alternativa: Live Server
+También puedes usar Live Server en Visual Studio Code o publicar directamente en GitHub Pages.
 
-También puedes usar la extensión **Live Server** de Visual Studio Code.
-
-### Publicación en GitHub Pages
-
-1. Sube los archivos a tu repositorio.
-2. En GitHub, entra en **Settings → Pages**.
-3. Selecciona la rama que quieras publicar.
-4. Usa `/root` como carpeta de publicación si el proyecto está en la raíz.
+No se recomienda abrir el archivo como `file://`, ya que algunas fuentes externas, cámaras y módulos pueden no funcionar correctamente sin servidor web.
 
 ---
 
-## Fuentes de datos
+## Publicación en GitHub Pages
 
-| Fuente | Uso |
-|---|---|
-| WhereTheISS.at | Posición actual de la ISS y TLE como fuente principal. |
-| CelesTrak | Fuente alternativa de TLE/GP para NORAD 25544. |
-| NASA ISS OEM | Trayectoria oficial en formato CCSDS OEM, cargada de forma experimental. |
-| Open-Meteo Geocoding | Conversión de ciudad a latitud/longitud. |
-| NASA / YouTube | Emisiones de vídeo en directo de la ISS y NASA. |
-| Globe.gl / Three.js | Renderizado 3D del globo. |
-| Esri | Teselas de mapa satélite, callejero y topográfico. |
-| Live Cloud Maps | Textura global de nubes casi en directo. |
+El proyecto es completamente estático. Puede publicarse en GitHub Pages sin backend.
+
+Pasos habituales:
+
+1. Subir el contenido del proyecto al repositorio.
+2. Activar GitHub Pages desde la configuración del repositorio.
+3. Seleccionar la rama principal y la carpeta raíz.
+4. Abrir la URL pública generada por GitHub Pages.
 
 ---
 
-## Cámaras en directo
+## Limitaciones
 
-El panel de cámaras usa reproductores embebidos de YouTube con emisiones públicas relacionadas con NASA/ISS.
+ISS Tracker es una herramienta educativa y visual. No debe usarse para navegación, observación astronómica crítica ni cálculo orbital profesional.
 
-En la v5 la ventana mantiene el diseño minimalista de la v3, pero añade redimensionado manual desde las cuatro esquinas. La barra superior contiene únicamente selector de cámara, zona de arrastre y botones de rotación, minimizar y cerrar. La rotación automática cambia de cámara cada 30 segundos.
+Limitaciones principales:
 
-Es normal que la emisión pueda mostrar pantalla negra, gris, cortes temporales o errores de YouTube si el directo no está disponible, si NASA cambia la emisión o si el proyecto se abre como `file://`.
-
----
-
-## Sobre la trayectoria NASA OEM
-
-NASA publica la trayectoria de la ISS en formato **CCSDS Orbit Ephemeris Message** (`.txt` y `.xml`). Esta versión intenta cargar primero las fuentes oficiales directas y, si el navegador lo bloquea por CORS, prueba una ruta alternativa mediante proxy CORS público.
-
-Notas importantes:
-
-- El formato OEM usa vectores de estado en el marco J2000.
-- La conversión visual en navegador se trata como aproximación divulgativa.
-- Los vectores OEM están más espaciados que la órbita TLE calculada localmente; por eso la v3 interpola puntos intermedios para suavizar la línea.
-- Si el navegador bloquea la petición o la fuente no responde, el proyecto sigue funcionando con TLE y Satellite.js.
-- El modo TLE sigue siendo la capa operativa principal.
-- El proxy CORS se usa solo como fallback y no debe considerarse infraestructura crítica.
-
----
-
-## Limitaciones actuales
-
-Este proyecto es educativo y visual. No debe usarse para navegación, observación astronómica profesional ni cálculo orbital crítico.
-
-Limitaciones relevantes:
-
-- La predicción de paso visible es aproximada.
-- La sombra día/noche, la subposición lunar y la fase lunar son aproximaciones visuales.
-- El país sobrevolado se calcula con polígonos simplificados.
-- La trayectoria NASA OEM se muestra como capa experimental y puede fallar si la fuente oficial o el proxy CORS no responden.
-- Las texturas, teselas, cámaras y APIs dependen de servicios externos.
-- Los directos de YouTube pueden fallar si cambia la política de embebido, la emisión oficial o el origen desde el que se ejecuta la página.
-- El Service Worker solo cachea archivos principales del proyecto, no garantiza disponibilidad offline de APIs ni mapas externos.
-
----
-
-## Cambios destacados de la v4
-
-- Rotación automática de cámaras ajustada a **30 segundos**.
-- Ventana de cámaras redimensionable desde las cuatro esquinas: superior izquierda, superior derecha, inferior izquierda e inferior derecha.
-- Redimensionado personalizado con Pointer Events, sin indicadores visuales adicionales.
-- El panel de cámaras usa altura real flexible para que el vídeo aproveche mejor el espacio al redimensionar.
-- Zoom del globo mucho más fino: `zoomSpeed` reducido a `0.006`.
-- Acercamiento máximo ampliado: `minDistance` ajustado a `100.006` para aproximarse mucho más a la superficie sin entrar en la esfera.
-- Vista lejana contenida: `maxDistance` ajustado a `1500` para no alejarse tanto del planeta.
-- Cámara ajustada con `near = 0.001` para mejorar la visualización a distancias muy próximas.
-- Actualizado `localStorage` a preferencias v4.
-- Actualizado Service Worker a caché v4.
-
-## Cambios destacados de la v3
-
-- Sol/Luna desactivados por defecto.
-- Separadas las capas **Sombra día/noche** y **Sol/Luna**.
-- Recuperada la sombra nocturna gradual como capa independiente.
-- Eliminada la línea discontinua de terminador solar.
-- Sol y Luna colocados más lejos de la esfera.
-- Panel de cámaras simplificado: barra superior compacta y vídeo como elemento principal.
-- Eliminados título, subtítulo y nota inferior del panel de cámaras.
-- Corregido el arrastre de la ventana de cámaras usando captura de puntero en la cabecera.
-- Trayectoria NASA OEM suavizada mediante interpolación entre vectores.
-
----
-
-## Roadmap sugerido
-
-- Añadir tests unitarios para utilidades orbitales y geodesia.
-- Sustituir carga CDN por dependencias empaquetadas con Vite.
-- Añadir panel de eventos orbitales: nodo ascendente, nodo descendente y próxima salida/entrada de eclipse.
-- Añadir selector de ciudad por geolocalización del navegador.
-- Añadir notificaciones de próximos pasos visibles.
-- Guardar varias ciudades favoritas.
-- Añadir exportación de tabla de pasos a CSV.
-- Añadir capturas automáticas para README.
-- Integrar un dataset local de países para reducir dependencias externas.
+- Las predicciones de paso visible son aproximadas.
+- La visibilidad real depende de nubosidad, contaminación lumínica, brillo de la ISS, hora solar y condiciones atmosféricas.
+- Las cámaras pueden mostrar pantalla negra, cortes o restricciones de inserción según la fuente.
+- La trayectoria NASA OEM puede fallar desde navegador por CORS o disponibilidad temporal.
+- Las teselas y texturas dependen de servicios externos.
 
 ---
 
 ## Licencia
 
-Este proyecto se distribuye bajo licencia **MIT**.
+Este proyecto se distribuye bajo licencia MIT.
 
-MIT es una licencia abierta y permisiva: permite usar, copiar, modificar y redistribuir el código, incluso en otros proyectos, manteniendo el aviso de copyright y la licencia.
+Consulta el archivo `LICENSE` para más información.
 
 ---
 
-## Créditos y referencias
+## Historial de versiones
 
-- Globe.gl: https://globe.gl/
-- Satellite.js: https://github.com/shashwatak/satellite-js
-- WhereTheISS.at API: https://wheretheiss.at/w/developer
-- CelesTrak GP/TLE: https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE
-- NASA Spot The Station: https://www.nasa.gov/spot-the-station/
-- NASA HDEV / ISS live video: https://eol.jsc.nasa.gov/esrs/hdev/
-- ESA: https://www.esa.int/
-- SpaceX: https://www.spacex.com/
-- Blue Origin: https://www.blueorigin.com/
-- JAXA: https://global.jaxa.jp/
-- CNSA: https://www.cnsa.gov.cn/english/
-- ISRO: https://www.isro.gov.in/
-- Arianespace: https://www.arianespace.com/
-- Canadian Space Agency: https://www.asc-csa.gc.ca/eng/
-- Open-Meteo Geocoding API: https://open-meteo.com/en/docs/geocoding-api
-- YouTube IFrame Player API: https://developers.google.com/youtube/iframe_api_reference
+### v1 · Modularización inicial
 
-### v10 · Correcciones de enlaces, pasos seleccionables y marcadores verticales
+- Separación del proyecto en HTML, CSS y módulos JavaScript.
+- README actualizado.
+- Base preparada para entregas en ZIP completas.
 
-- Eliminadas por completo las notificaciones visuales de arranque, errores y avisos.
-- Corregidos los enlaces de la sección Información con destinos distintos y funcionales.
-- La sección de pasos visibles coloca ciudad, elevación, horas y botón en una sola línea en escritorio.
-- Se muestran hasta ocho pasos y cada fila puede seleccionarse para representar ese paso concreto en el globo.
-- El tramo visible seleccionado se resalta en magenta con mayor grosor.
-- La ciudad y la ISS tienen una línea vertical fina en amarillo/naranja para indicar su punto sobre la superficie.
-- La etiqueta de ubicación usa HTML y conserva caracteres como acentos y ñ.
-- El estado NASA OEM queda exclusivamente en Estado datos.
+### v2 · Sol/Luna y NASA OEM
+
+- Añadidos Sol y Luna como elementos visuales propios.
+- Fase lunar aproximada.
+- Primer soporte experimental para NASA OEM.
+- Ajustes de renderizado para reducir artefactos.
+
+### v3 · Cámaras, capas y zoom
+
+- Sol/Luna desactivados por defecto.
+- Separación entre capa Sol/Luna y sombra día/noche.
+- Panel de cámaras simplificado.
+- Zoom más gradual.
+- Trayectoria NASA OEM suavizada.
+
+### v4 · Zoom fino y cámaras redimensionables
+
+- Rotación de cámaras cada 30 segundos.
+- Redimensionado desde las cuatro esquinas.
+- Mayor recorrido de zoom hacia superficie.
+
+### v5 · Interfaz profesional
+
+- Eliminación de emoticonos decorativos.
+- Menú lateral más sobrio.
+- Telemetría conmutable.
+- Sustitución del marcador ISS por SVG local.
+
+### v6 · Menú compacto y responsive
+
+- Cabecera reducida a ISS Tracker.
+- Apariencia del globo en rejilla 2x2.
+- Primeros ajustes responsive para móvil y portátil.
+
+### v7 · Menú y telemetría refinados
+
+- Nombre unificado como ISS Tracker.
+- Capas y herramientas en rejilla compacta.
+- Estado de datos simplificado.
+- Telemetría reducida a datos dinámicos útiles.
+
+### v8 · Estética de notificaciones y cámaras
+
+- Notificaciones rediseñadas y compactadas.
+- Iconos funcionales en controles de cámara.
+- Modal de estado reducido.
+
+### v9 · Limpieza de estado e información
+
+- Eliminación de notificaciones de arranque.
+- Estado de datos integrado en menú.
+- Sección de información inicial.
+- Etiquetas de ubicación limpias y compatibles con acentos.
+- Telemetría sin contenedor exterior.
+
+### v10 · Pasos seleccionables y marcadores verticales
+
+- Listado de pasos visibles seleccionables.
+- Representación visual del paso elegido.
+- Trayectoria visible destacada.
+- Guías verticales para ciudad e ISS.
+- Corrección de enlaces de información iniciales.
+
+### v11 · Guías sincronizadas y enlaces revisados
+
+- Guía vertical de la ISS sincronizada con el marcador.
+- Guías más visibles.
+- Enlaces de información revisados.
+
+### v12 · Enlaces, estado compacto y paginación
+
+- Información ampliada con enlaces oficiales.
+- Estado de datos en una fila de tres indicadores.
+- Tooltips de detalle para ISS, TLE y NASA OEM.
+- Paginación de pasos visibles en bloques de 10.
+
+### v13 · Acabado de presentación
+
+- Más enlaces oficiales, organizados en tres columnas.
+- Scrollbars minimalistas en el menú.
+- Modal de pasos ajustado para evitar scroll vertical en escritorio.
+- README reescrito como presentación profesional del proyecto.
+- Historial de versiones consolidado al final del documento.
