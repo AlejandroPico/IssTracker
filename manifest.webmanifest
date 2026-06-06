@@ -1,7 +1,7 @@
 {
   "name": "ISS Tracker",
   "short_name": "ISS Tracker",
-  "description": "Tracker de la Estación Espacial Internacional con órbita 3D, cámaras y telemetría.",
+  "description": "Seguimiento interactivo de la Estación Espacial Internacional con órbita, cámaras, pasos visibles y telemetría.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#02040a",

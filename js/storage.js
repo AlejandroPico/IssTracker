@@ -1,6 +1,6 @@
 import { state } from './state.js';
 
-const STORAGE_KEY = 'iss-tracker-3d.preferences.v6';
+const STORAGE_KEY = 'iss-tracker.preferences.v7';
 
 const DEFAULTS = {
   currentMapType: 'satellite',

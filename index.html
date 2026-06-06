@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="theme-color" content="#05080d" />
-  <meta name="description" content="Tracker 3D de la Estación Espacial Internacional con órbita, cámaras, telemetría, pasos visibles y capas astronómicas opcionales." />
+  <meta name="description" content="Seguimiento interactivo de la Estación Espacial Internacional con órbita, cámaras, telemetría, pasos visibles y capas astronómicas opcionales." />
   <title>ISS Tracker</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -36,45 +36,35 @@
       </div>
     </section>
 
-    <section class="menu-section compact-controls">
+    <section class="menu-section compact-controls layer-grid-section">
       <h2 class="section-title">Capas orbitales y geográficas</h2>
-      <button id="btnClouds" class="menu-item" type="button">Nubes: DESACTIVADAS</button>
-      <button id="btnBorders" class="menu-item" type="button">Fronteras: DESACTIVADAS</button>
-      <button id="btnOrbit" class="menu-item" type="button">Órbita TLE: DESACTIVADA</button>
-      <button id="btnNasaTrajectory" class="menu-item" type="button">Trayectoria NASA OEM: DESACTIVADA</button>
-      <button id="btnNightShadow" class="menu-item" type="button">Sombra día/noche: DESACTIVADA</button>
-      <button id="btnSunMoon" class="menu-item" type="button">Sol/Luna: DESACTIVADO</button>
+      <div class="control-grid control-grid-2x3" role="group" aria-label="Capas orbitales y geográficas">
+        <button id="btnClouds" class="menu-item" type="button">Nubes</button>
+        <button id="btnBorders" class="menu-item" type="button">Fronteras</button>
+        <button id="btnOrbit" class="menu-item" type="button">Órbita TLE</button>
+        <button id="btnNasaTrajectory" class="menu-item" type="button">NASA OEM</button>
+        <button id="btnNightShadow" class="menu-item" type="button">Sombra</button>
+        <button id="btnSunMoon" class="menu-item" type="button">Sol/Luna</button>
+      </div>
     </section>
 
-    <section class="menu-section compact-controls">
+    <section class="menu-section compact-controls tools-grid-section">
       <h2 class="section-title">Herramientas</h2>
-      <button id="btnTelemetry" class="menu-item" type="button">Panel de telemetría: ACTIVADO</button>
-      <button id="btnCenterIss" class="menu-item" type="button">Centrar en la ISS</button>
-      <button id="btnOpenPasses" class="menu-item" type="button">Pasos visibles por ciudad</button>
-      <button id="btnOpenCameras" class="menu-item" type="button">Cámaras ISS/NASA</button>
-      <button id="btnResetPreferences" class="menu-item subtle" type="button">Restablecer preferencias</button>
-    </section>
-
-    <section class="menu-section">
-      <h2 class="section-title">Estado de datos</h2>
-      <div id="dataStatus" class="data-status">
-        <div><span class="status-dot pending"></span>ISS: inicializando…</div>
-        <div><span class="status-dot pending"></span>TLE: pendiente</div>
-        <div><span class="status-dot pending"></span>NASA OEM: pendiente</div>
+      <div class="control-grid control-grid-2x3" role="group" aria-label="Herramientas">
+        <button id="btnTelemetry" class="menu-item" type="button">Telemetría</button>
+        <button id="btnCenterIss" class="menu-item" type="button">Centrar ISS</button>
+        <button id="btnOpenPasses" class="menu-item" type="button">Pasos visibles</button>
+        <button id="btnOpenCameras" class="menu-item" type="button">Cámaras NASA</button>
+        <button id="btnOpenDataStatus" class="menu-item" type="button">Estado datos</button>
+        <button id="btnResetPreferences" class="menu-item subtle" type="button">Reiniciar</button>
       </div>
     </section>
   </aside>
 
-  <main id="globeViz" aria-label="Globo 3D con posición de la ISS"></main>
+  <main id="globeViz" aria-label="Globo interactivo con posición de la ISS"></main>
 
   <section id="statusPanel" class="status-panel" aria-label="Telemetría ISS">
-    <div class="panel-title-row">
-      <strong>ISS Tracker</strong>
-      <span id="liveBadge" class="badge muted">INICIANDO</span>
-    </div>
-    <div id="issReadout" class="readout">Cargando posición de la ISS…</div>
-    <div id="telemetryGrid" class="telemetry-grid"></div>
-    <div id="mapAttribution" class="attribution">Esri World Imagery · NASA Blue Marble · Globe.gl</div>
+    <div id="telemetryGrid" class="telemetry-grid compact-telemetry"></div>
   </section>
 
   <section id="passModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="passModalTitle">
@@ -97,6 +87,16 @@
     </div>
     <button id="btnCalculatePasses" class="action-btn" type="button">Calcular pasos</button>
     <div id="passResult" class="result-card" hidden></div>
+  </section>
+
+  <section id="dataStatusModal" class="modal data-status-modal" role="dialog" aria-modal="true" aria-labelledby="dataStatusModalTitle">
+    <button class="close-btn" type="button" data-close-modal aria-label="Cerrar">Cerrar</button>
+    <h2 id="dataStatusModalTitle">Estado de datos</h2>
+    <div id="dataStatus" class="data-status detailed-data-status">
+      <div><span class="status-dot pending"></span>ISS: inicializando…</div>
+      <div><span class="status-dot pending"></span>TLE: pendiente</div>
+      <div><span class="status-dot pending"></span>NASA OEM: pendiente</div>
+    </div>
   </section>
 
   <section id="cameraPanel" class="camera-panel" aria-label="Panel de cámaras ISS/NASA" hidden>

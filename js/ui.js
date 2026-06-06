@@ -22,6 +22,7 @@ export function initUI(prefs) {
   bind('btnCenterIss', 'click', centerOnISS);
   bind('btnOpenPasses', 'click', () => openModal('passModal'));
   bind('btnOpenCameras', 'click', openCameraPanel);
+  bind('btnOpenDataStatus', 'click', () => openModal('dataStatusModal'));
   bind('btnCalculatePasses', 'click', calculateVisiblePasses);
   bind('btnResetPreferences', 'click', () => {
     resetPreferences();
@@ -79,9 +80,8 @@ export function updateTelemetryVisibility() {
   if (panel) panel.hidden = !state.isTelemetryVisible;
   if (btn) {
     btn.classList.toggle('active', state.isTelemetryVisible);
-    btn.textContent = state.isTelemetryVisible
-      ? 'Panel de telemetría: ACTIVADO'
-      : 'Panel de telemetría: DESACTIVADO';
+    btn.setAttribute('aria-pressed', String(state.isTelemetryVisible));
+    btn.textContent = 'Telemetría';
   }
 }
 
@@ -128,29 +128,34 @@ export function updateLayerButtons() {
     const available = state.currentMapType === 'satellite';
     clouds.classList.toggle('disabled', !available);
     clouds.classList.toggle('active', state.cloudsEnabled && available);
-    clouds.textContent = available
-      ? (state.cloudsEnabled ? 'Nubes: ACTIVADAS' : 'Nubes: DESACTIVADAS')
-      : 'Nubes: NO DISPONIBLE';
+    clouds.setAttribute('aria-pressed', String(state.cloudsEnabled && available));
+    clouds.textContent = 'Nubes';
+    clouds.title = available ? 'Capa de nubes disponible en modo Satélite.' : 'Disponible solo en modo Satélite.';
   }
   if (borders) {
     borders.classList.toggle('active', state.showingBorders);
-    borders.textContent = state.showingBorders ? 'Fronteras: ACTIVADAS' : 'Fronteras: DESACTIVADAS';
+    borders.setAttribute('aria-pressed', String(state.showingBorders));
+    borders.textContent = 'Fronteras';
   }
   if (orbit) {
     orbit.classList.toggle('active', state.isOrbitVisible);
-    orbit.textContent = state.isOrbitVisible ? 'Órbita TLE: ACTIVADA' : 'Órbita TLE: DESACTIVADA';
+    orbit.setAttribute('aria-pressed', String(state.isOrbitVisible));
+    orbit.textContent = 'Órbita TLE';
   }
   if (nasa) {
     nasa.classList.toggle('active', state.isNasaTrajectoryVisible);
-    nasa.textContent = state.isNasaTrajectoryVisible ? 'Trayectoria NASA OEM: ACTIVADA' : 'Trayectoria NASA OEM: DESACTIVADA';
+    nasa.setAttribute('aria-pressed', String(state.isNasaTrajectoryVisible));
+    nasa.textContent = 'NASA OEM';
   }
   if (nightShadow) {
     nightShadow.classList.toggle('active', state.isNightShadowVisible);
-    nightShadow.textContent = state.isNightShadowVisible ? 'Sombra día/noche: ACTIVADA' : 'Sombra día/noche: DESACTIVADA';
+    nightShadow.setAttribute('aria-pressed', String(state.isNightShadowVisible));
+    nightShadow.textContent = 'Sombra';
   }
   if (sunMoon) {
     sunMoon.classList.toggle('active', state.isSunMoonVisible);
-    sunMoon.textContent = state.isSunMoonVisible ? 'Sol/Luna: ACTIVADO' : 'Sol/Luna: DESACTIVADO';
+    sunMoon.setAttribute('aria-pressed', String(state.isSunMoonVisible));
+    sunMoon.textContent = 'Sol/Luna';
   }
   savePreferences();
 }
@@ -170,46 +175,30 @@ export function updateDataStatus() {
 }
 
 export function updateTelemetryPanel() {
-  const readout = document.getElementById('issReadout');
   const grid = document.getElementById('telemetryGrid');
-  const badge = document.getElementById('liveBadge');
-  if (!readout || !grid || !badge) return;
+  if (!grid) return;
 
   if (!state.issData) {
-    readout.textContent = 'Cargando posición de la ISS…';
-    badge.textContent = 'INICIANDO';
-    badge.className = 'badge muted';
-    grid.innerHTML = '';
+    grid.innerHTML = telemetryItem('Estado', 'Inicializando…');
     updateDataStatus();
     return;
   }
 
   const d = state.issData;
-  const speed = Number.isFinite(d.velocityKmH) ? `${Math.round(d.velocityKmH).toLocaleString('es-ES')} km/h` : '—';
+  const lat = Number.isFinite(d.lat) ? `${d.lat.toFixed(3)}°` : '—';
+  const lng = Number.isFinite(d.lng) ? `${d.lng.toFixed(3)}°` : '—';
   const altitude = Number.isFinite(d.altitudeKm) ? `${Math.round(d.altitudeKm)} km` : '—';
+  const speed = Number.isFinite(d.velocityKmH) ? `${Math.round(d.velocityKmH).toLocaleString('es-ES')} km/h` : '—';
   const visibility = d.visibilityLabel || '—';
   const over = d.overflight || 'Océano / sin país detectado';
-  const moon = state.moonInfo ? `${state.moonInfo.phaseName} · ${Math.round(state.moonInfo.illumination * 100)}%` : '—';
-  const celestial = [
-    state.isNightShadowVisible ? 'sombra' : null,
-    state.isSunMoonVisible ? 'Sol/Luna' : null
-  ].filter(Boolean).join(' + ') || 'desactivado';
-
-  readout.textContent = `ISS · lat ${d.lat.toFixed(3)} · lng ${d.lng.toFixed(3)} · alt ${Math.round(d.altitudeKm || 420)} km`;
-  badge.textContent = d.sourceLabel?.includes('fallback') ? 'DEGRADADO' : 'LIVE';
-  badge.className = d.sourceLabel?.includes('fallback') ? 'badge warn' : 'badge';
 
   grid.innerHTML = [
+    telemetryItem('Latitud', lat),
+    telemetryItem('Longitud', lng),
     telemetryItem('Altitud', altitude),
     telemetryItem('Velocidad', speed),
     telemetryItem('Visibilidad', visibility),
-    telemetryItem('Sobrevuelo', over),
-    telemetryItem('Órbita', '≈ 90 min'),
-    telemetryItem('Inclinación', '51,6°'),
-    telemetryItem('Luna', moon),
-    telemetryItem('Capas celestes', celestial),
-    telemetryItem('Fuente', d.sourceLabel || '—'),
-    telemetryItem('Actualizado', d.updatedAt ? new Intl.DateTimeFormat('es-ES', { timeStyle: 'medium' }).format(d.updatedAt) : '—')
+    telemetryItem('Sobrevuelo', over)
   ].join('');
 
   updateDataStatus();

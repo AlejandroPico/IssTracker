@@ -1016,3 +1016,183 @@ input {
     font-size: 10px;
   }
 }
+
+/* v7 - Menú compacto sin scroll y telemetría esencial */
+.menu-btn {
+  width: 38px;
+  height: 38px;
+  top: 14px;
+  left: 14px;
+  padding: 0;
+  display: block;
+  position: absolute;
+  border-radius: 5px;
+  background: rgba(3, 8, 14, 0.84);
+}
+.menu-btn span {
+  position: absolute;
+  left: 10px;
+  width: 18px;
+  height: 2px;
+  margin: 0;
+  border-radius: 999px;
+  background: rgba(234, 248, 255, 0.94);
+}
+.menu-btn span:nth-child(1) { top: 11px; }
+.menu-btn span:nth-child(2) { top: 18px; }
+.menu-btn span:nth-child(3) { top: 25px; }
+
+.side-menu {
+  width: 338px;
+  left: -358px;
+  overflow: hidden;
+  padding: 0;
+}
+.menu-header.compact-menu-title {
+  min-height: 62px;
+  padding: 0 16px 0 62px;
+  display: flex;
+  align-items: center;
+}
+.menu-header.compact-menu-title h1 {
+  font-size: 17px;
+  line-height: 1;
+}
+.menu-section {
+  padding: 11px 16px 12px;
+}
+.section-title {
+  margin: 0 0 8px;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+}
+.map-grid,
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.compact-controls {
+  display: block;
+}
+.map-icon,
+.menu-item {
+  min-height: 38px;
+  height: 38px;
+  padding: 6px 8px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  line-height: 1.05;
+  font-size: 10px;
+  letter-spacing: 0.045em;
+  overflow: hidden;
+}
+.menu-item:hover {
+  transform: none;
+}
+.menu-item.disabled {
+  opacity: 0.32;
+}
+.menu-item.active,
+.map-icon.active {
+  box-shadow: inset 0 0 0 1px rgba(89, 232, 255, 0.48), inset 0 2px 0 rgba(89, 232, 255, 0.45);
+}
+
+.status-panel {
+  left: 14px;
+  bottom: 14px;
+  max-width: 560px;
+  padding: 8px;
+  border: 0;
+  border-radius: 5px;
+  background: rgba(3, 7, 12, 0.58);
+  box-shadow: none;
+  backdrop-filter: blur(7px);
+}
+.telemetry-grid.compact-telemetry,
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(116px, 1fr));
+  gap: 5px;
+}
+.telemetry-item {
+  min-height: 34px;
+  padding: 5px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 0;
+}
+.telemetry-label {
+  font-size: 9px;
+  letter-spacing: 0.11em;
+}
+.telemetry-value {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.15;
+}
+.data-status-modal .data-status {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+  color: rgba(236, 248, 255, 0.78);
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .menu-btn {
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    width: 38px;
+    height: 38px;
+  }
+  .side-menu {
+    width: min(338px, calc(100vw - 14px));
+    left: calc(-1 * min(338px, calc(100vw - 14px)) - 10px);
+  }
+  .menu-header.compact-menu-title {
+    min-height: 58px;
+    padding-left: 58px;
+  }
+  .menu-section {
+    padding: 10px 12px 11px;
+  }
+  .map-icon,
+  .menu-item {
+    min-height: 36px;
+    height: 36px;
+    font-size: 9.5px;
+  }
+  .status-panel {
+    left: 8px;
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+    padding: 7px;
+  }
+  .telemetry-grid.compact-telemetry,
+  .telemetry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 620px) {
+  .menu-header.compact-menu-title { min-height: 54px; }
+  .menu-section { padding-top: 8px; padding-bottom: 9px; }
+  .map-icon,
+  .menu-item { min-height: 33px; height: 33px; }
+  .section-title { margin-bottom: 6px; }
+}
+
+@media (max-width: 420px) {
+  .side-menu {
+    width: calc(100vw - 10px);
+    left: calc(-100vw - 10px);
+  }
+  .telemetry-grid.compact-telemetry,
+  .telemetry-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,6 +1,6 @@
-# ISS Tracker 3D
+# ISS Tracker
 
-Tracker 3D de la Estación Espacial Internacional desarrollado con **HTML**, **CSS**, **JavaScript modular**, **Globe.gl** y **Satellite.js**.
+Tracker de la Estación Espacial Internacional desarrollado con **HTML**, **CSS**, **JavaScript modular**, **Globe.gl** y **Satellite.js**.
 
 El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción de pasos visibles por ciudad, telemetría, capa de sombra día/noche opcional, Sol/Luna opcionales con fase lunar, trayectoria NASA OEM experimental y panel de cámaras en directo.
 
@@ -45,14 +45,13 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - Marcador SVG superior de la ISS, sin punto ni etiqueta fija sobre el mapa.
 - Centrado automático y manual sobre la estación.
 - Zoom mucho más gradual, con más pasos de rueda y acercamiento extremo a la superficie sin atravesar el globo.
-- Panel de telemetría conmutable desde el menú:
-  - Latitud y longitud.
+- Panel de telemetría conmutable desde el menú, reducido a datos vivos:
+  - Latitud.
+  - Longitud.
   - Altitud.
   - Velocidad aproximada.
   - Visibilidad según fuente disponible.
   - País o zona sobrevolada aproximada.
-  - Fuente de datos activa.
-  - Hora de actualización.
 - Cálculo de varios pasos visibles por ciudad.
 - Tabla de pasos futuros con inicio, máximo, fin, duración, elevación, dirección y calidad.
 - Marcador de ciudad sobre el globo.
@@ -69,6 +68,18 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - Persistencia de preferencias con `localStorage`.
 - Base PWA con `manifest.webmanifest` y `sw.js`.
 
+
+
+### Cambios de la v7
+
+- Nombre del proyecto unificado como **ISS Tracker** en el README, manifest, metadatos y cachés internas.
+- Menú lateral todavía más compacto para evitar scroll vertical en escritorio.
+- Icono hamburguesa redibujado con barras más equilibradas y espaciado superior/inferior coherente.
+- Secciones de capas y herramientas reorganizadas en rejillas 2x3.
+- Los botones de capas ya no muestran textos ACTIVADO/DESACTIVADO: el estado se comunica por el estilo activo del botón.
+- La sección permanente “Estado de datos” se ha retirado del menú y ahora se abre desde Herramientas.
+- Panel de telemetría rediseñado y reducido a datos dinámicos realmente útiles: latitud, longitud, altitud, velocidad, visibilidad y sobrevuelo.
+- Eliminados del panel de telemetría los textos fijos, atribuciones, fuente activa, hora de actualización, indicador LIVE, capas celestes y datos lunares no esenciales.
 
 ### Cambios de la v6
 
@@ -99,7 +110,7 @@ El nuevo icono local de la ISS se ha redibujado como una silueta superior simpli
 ## Estructura del repositorio
 
 ```text
-iss-tracker-3d/
+iss-tracker/
 │
 ├── index.html
 ├── README.md
