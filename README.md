@@ -70,15 +70,19 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 
 
 
-### Cambios de la v8
+### Cambios de la v9
 
-- Ventana “Estado de datos” reducida y compactada para que no ocupe más espacio del necesario.
-- Notificaciones inferiores rediseñadas con una estética más coherente con la interfaz técnica de la aplicación.
-- Anchura de notificaciones y errores reducida para evitar aspecto de burbuja grande.
-- Botones del panel de cámaras actualizados con iconos funcionales: rotación, minimizar y cerrar.
-- Mantenido el criterio general de no usar iconografía decorativa en el menú principal.
-- Actualizado `localStorage` a preferencias v8 y Service Worker a caché v8.
-
+- Eliminada la notificación de arranque de la aplicación.
+- NASA OEM ya no muestra avisos emergentes: cualquier fallo queda reflejado solo en `Estado datos`.
+- `Estado datos` vuelve al menú lateral como bloque inferior compacto.
+- Herramientas queda reducido a cuatro acciones: telemetría, centrar ISS, pasos visibles y cámaras NASA.
+- Eliminados los botones `Estado datos` y `Reiniciar` del bloque de herramientas.
+- Añadida sección `Información` con cuatro enlaces breves: ISS, TLE, NASA OEM y visibilidad.
+- Panel de telemetría sin contenedor exterior: quedan únicamente las cajas de datos.
+- Etiqueta de ubicación corregida mediante marcador HTML para evitar problemas con acentos y `ñ` en el renderizador del globo.
+- La ubicación muestra solo ciudad y país, sin prefijo `Ubicación`.
+- Trayectoria visible calculada para la ubicación destacada en magenta/violeta y con más grosor.
+- NASA OEM revisado: las URLs oficiales siguen siendo las enlazadas por NASA y se añaden más estrategias de carga mediante proxies CORS para entorno navegador.
 
 ### Cambios de la v7
 

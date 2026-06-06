@@ -33,7 +33,7 @@ export function initGlobe() {
     .labelSize('size')
     .labelColor('color')
     .labelResolution(2)
-    .labelIncludeDot(true)
+    .labelIncludeDot(false)
     .labelDotRadius(0.08)
     .labelsTransitionDuration(0)
     .pathPoints('coords')
@@ -109,6 +109,10 @@ function createHtmlMarker(d) {
     el.className = `celestial-marker moon-marker ${d.phaseClass || 'unknown'}`;
     el.title = d.title || 'Luna';
     el.innerHTML = `<span class="moon-disc"><span class="moon-shade"></span></span><span class="celestial-label">Luna</span>`;
+  } else if (d && d.kind === 'observer') {
+    el.className = 'observer-marker';
+    el.title = d.text || '';
+    el.textContent = d.text || '';
   }
   return el;
 }
@@ -116,6 +120,7 @@ function createHtmlMarker(d) {
 export function renderIssLayers() {
   if (!state.world) return;
   const htmlData = state.issData ? [state.issData] : [];
+  if (state.observerMarker) htmlData.push(state.observerMarker);
   if (state.isSunMoonVisible && state.sunMarker) htmlData.push(state.sunMarker);
   if (state.isSunMoonVisible && state.moonMarker) htmlData.push(state.moonMarker);
   const pointData = [];
@@ -154,13 +159,13 @@ export function renderPaths() {
       if (d.type === 'nasaPast') return '#ff9f1c';
       if (d.type === 'nasaFuture') return '#b0ff00';
       if (d.type === 'terminator') return 'rgba(255, 230, 150, 0.82)';
-      if (d.type === 'visibility') return '#00ffff';
-      if (d.type === 'visiblePass') return '#00aaff';
+      if (d.type === 'visibility') return 'rgba(89, 232, 255, 0.72)';
+      if (d.type === 'visiblePass') return '#ff3df2';
       return '#ffffff';
     })
     .pathStroke(d => {
       if (d.type === 'past' || d.type === 'future' || d.type === 'nasaPast' || d.type === 'nasaFuture') return 0.62;
-      if (d.type === 'visiblePass') return 0.56;
+      if (d.type === 'visiblePass') return 0.92;
       if (d.type === 'visibility') return 0.22;
       if (d.type === 'terminator') return 0.28;
       return 0.14;

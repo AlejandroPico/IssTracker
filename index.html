@@ -50,13 +50,30 @@
 
     <section class="menu-section compact-controls tools-grid-section">
       <h2 class="section-title">Herramientas</h2>
-      <div class="control-grid control-grid-2x3" role="group" aria-label="Herramientas">
+      <div class="control-grid control-grid-2x2" role="group" aria-label="Herramientas">
         <button id="btnTelemetry" class="menu-item" type="button">Telemetría</button>
         <button id="btnCenterIss" class="menu-item" type="button">Centrar ISS</button>
         <button id="btnOpenPasses" class="menu-item" type="button">Pasos visibles</button>
         <button id="btnOpenCameras" class="menu-item" type="button">Cámaras NASA</button>
-        <button id="btnOpenDataStatus" class="menu-item" type="button">Estado datos</button>
-        <button id="btnResetPreferences" class="menu-item subtle" type="button">Reiniciar</button>
+      </div>
+    </section>
+
+    <section class="menu-section compact-controls info-grid-section">
+      <h2 class="section-title">Información</h2>
+      <div class="info-grid" aria-label="Enlaces de referencia">
+        <a href="https://www.nasa.gov/international-space-station/" target="_blank" rel="noopener noreferrer">ISS</a>
+        <a href="https://es.wikipedia.org/wiki/Conjunto_de_dos_l%C3%ADneas" target="_blank" rel="noopener noreferrer">TLE</a>
+        <a href="https://www.nasa.gov/spot-the-station/" target="_blank" rel="noopener noreferrer">NASA OEM</a>
+        <a href="https://www.nasa.gov/spot-the-station/" target="_blank" rel="noopener noreferrer">Visibilidad</a>
+      </div>
+    </section>
+
+    <section class="menu-section data-status-section" aria-label="Estado de los datos">
+      <h2 class="section-title">Estado datos</h2>
+      <div id="dataStatus" class="data-status inline-data-status">
+        <div><span class="status-dot pending"></span>ISS: inicializando</div>
+        <div><span class="status-dot pending"></span>TLE: pendiente</div>
+        <div><span class="status-dot pending"></span>NASA OEM: pendiente</div>
       </div>
     </section>
   </aside>
@@ -87,16 +104,6 @@
     </div>
     <button id="btnCalculatePasses" class="action-btn" type="button">Calcular pasos</button>
     <div id="passResult" class="result-card" hidden></div>
-  </section>
-
-  <section id="dataStatusModal" class="modal data-status-modal" role="dialog" aria-modal="true" aria-labelledby="dataStatusModalTitle">
-    <button class="close-btn" type="button" data-close-modal aria-label="Cerrar">Cerrar</button>
-    <h2 id="dataStatusModalTitle">Estado de datos</h2>
-    <div id="dataStatus" class="data-status detailed-data-status">
-      <div><span class="status-dot pending"></span>ISS: inicializando…</div>
-      <div><span class="status-dot pending"></span>TLE: pendiente</div>
-      <div><span class="status-dot pending"></span>NASA OEM: pendiente</div>
-    </div>
   </section>
 
   <section id="cameraPanel" class="camera-panel" aria-label="Panel de cámaras ISS/NASA" hidden>

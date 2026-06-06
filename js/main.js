@@ -1,5 +1,5 @@
 import { loadPreferences } from './storage.js';
-import { initUI, showError, showToast, updateLayerButtons } from './ui.js';
+import { initUI, showError, updateLayerButtons } from './ui.js';
 import { initGlobe } from './globe.js';
 import { applyMapAppearance, loadCountryData } from './maps.js';
 import { startIssTracking } from './iss-api.js';
@@ -36,8 +36,6 @@ async function initApp() {
     });
 
     if (state.isOrbitVisible) calculateOrbit();
-    showToast('Sistema inicializado.');
-
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('./sw.js').catch(err => {
         console.warn('No se pudo registrar el service worker:', err);

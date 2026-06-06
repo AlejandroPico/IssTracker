@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { DEFAULT_PASS_HOURS_AHEAD, DEFAULT_MIN_VISIBLE_ELEVATION_DEG } from './config.js';
 import { escapeHtml, formatDate, formatDuration, passQuality } from './utils.js';
-import { savePreferences, resetPreferences } from './storage.js';
+import { savePreferences } from './storage.js';
 import { changeMapType, toggleBorders, toggleClouds } from './maps.js';
 import { toggleOrbit } from './orbit.js';
 import { toggleNightShadow, toggleSunMoon } from './visibility.js';
@@ -22,12 +22,7 @@ export function initUI(prefs) {
   bind('btnCenterIss', 'click', centerOnISS);
   bind('btnOpenPasses', 'click', () => openModal('passModal'));
   bind('btnOpenCameras', 'click', openCameraPanel);
-  bind('btnOpenDataStatus', 'click', () => openModal('dataStatusModal'));
   bind('btnCalculatePasses', 'click', calculateVisiblePasses);
-  bind('btnResetPreferences', 'click', () => {
-    resetPreferences();
-    showToast('Preferencias restablecidas. Recarga la página para volver al estado inicial.');
-  });
 
   document.querySelectorAll('[data-map]').forEach(btn => {
     btn.addEventListener('click', () => changeMapType(btn.dataset.map));
@@ -167,10 +162,13 @@ export function updateDataStatus() {
   const tleOk = Boolean(state.tleSatrec);
   const oemOk = state.nasaOem.loaded;
   const oemLoading = state.nasaOem.loading;
+  const oemState = oemOk
+    ? `${state.nasaOem.vectors.length} vectores`
+    : (oemLoading ? 'cargando' : escapeHtml(state.nasaOem.sourceLabel || 'pendiente'));
   el.innerHTML = `
-    <div><span class="status-dot ${issOk ? 'ok' : 'pending'}"></span>ISS: ${issOk ? escapeHtml(state.issData.sourceLabel || 'activa') : 'inicializando…'}</div>
-    <div><span class="status-dot ${tleOk ? 'ok' : 'pending'}"></span>TLE: ${escapeHtml(state.tleSourceLabel || 'pendiente')}</div>
-    <div><span class="status-dot ${oemOk ? 'ok' : (oemLoading ? 'pending' : 'warn')}"></span>NASA OEM: ${oemOk ? `${state.nasaOem.vectors.length} vectores` : (oemLoading ? 'cargando…' : escapeHtml(state.nasaOem.sourceLabel || 'pendiente'))}</div>
+    <div><span class="status-dot ${issOk ? 'ok' : 'pending'}"></span><span>ISS</span><b>${issOk ? escapeHtml(state.issData.sourceLabel || 'activa') : 'iniciando'}</b></div>
+    <div><span class="status-dot ${tleOk ? 'ok' : 'pending'}"></span><span>TLE</span><b>${escapeHtml(state.tleSourceLabel || 'pendiente')}</b></div>
+    <div><span class="status-dot ${oemOk ? 'ok' : (oemLoading ? 'pending' : 'warn')}"></span><span>NASA OEM</span><b>${oemState}</b></div>
   `;
 }
 

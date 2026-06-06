@@ -37,6 +37,7 @@ export const state = {
 
   observerPoint: null,
   observerLabel: null,
+  observerMarker: null,
   visibilityPaths: [],
 
   orbitTimer: null,

@@ -45,7 +45,7 @@ async function resolveLocation(text) {
   if (!data.results || !data.results.length) throw new Error('No he encontrado esa ciudad.');
   const r = data.results[0];
   return {
-    name: [r.name, r.admin1, r.country].filter(Boolean).join(', '),
+    name: [r.name, r.country].filter(Boolean).join(', '),
     lat: Number(r.latitude),
     lng: Number(r.longitude)
   };
@@ -118,8 +118,15 @@ function findUpcomingPasses(satrec, lat, lng, hoursAhead, minElevation, maxPasse
 }
 
 function drawObserver(location) {
-  state.observerPoint = { lat: location.lat, lng: location.lng, alt: 0.014, radius: 0.22, color: '#00ffcc' };
-  state.observerLabel = { lat: location.lat, lng: location.lng, alt: 0.036, text: 'Ubicación · ' + location.name, size: 0.58, color: '#ffffff' };
+  state.observerPoint = { lat: location.lat, lng: location.lng, alt: 0.014, radius: 0.18, color: '#00ffcc' };
+  state.observerLabel = null;
+  state.observerMarker = {
+    kind: 'observer',
+    lat: location.lat,
+    lng: location.lng,
+    htmlAlt: 0.045,
+    text: location.name
+  };
   renderIssLayers();
 }
 

@@ -1326,3 +1326,125 @@ input {
     max-width: calc(100vw - 20px);
   }
 }
+
+
+/* v9 - Limpieza final de menú, estado integrado, telemetría sin contenedor y trayectoria visible destacada */
+.menu-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 6px;
+}
+.menu-btn span {
+  left: 9px;
+  width: 20px;
+  height: 2px;
+}
+.menu-btn span:nth-child(1) { top: 12px; }
+.menu-btn span:nth-child(2) { top: 18px; }
+.menu-btn span:nth-child(3) { top: 24px; }
+.control-grid-2x2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.info-grid a {
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(244, 251, 255, 0.86);
+  text-decoration: none;
+  font-size: 10px;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+.info-grid a:hover {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.09);
+}
+.data-status-section {
+  border-bottom: 0;
+  padding-bottom: 10px;
+}
+.inline-data-status {
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.15;
+}
+.inline-data-status div {
+  min-height: 24px;
+  display: grid;
+  grid-template-columns: 10px 62px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.035);
+}
+.inline-data-status b {
+  color: rgba(244, 251, 255, 0.82);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-dot {
+  width: 6px;
+  height: 6px;
+  margin-right: 0;
+}
+.status-panel {
+  width: auto;
+  max-width: min(560px, calc(100vw - 28px));
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+}
+.telemetry-grid.compact-telemetry,
+.telemetry-grid {
+  margin: 0;
+  gap: 6px;
+}
+.telemetry-item {
+  background: rgba(5, 10, 17, 0.70);
+  border: 1px solid rgba(125, 214, 255, 0.12);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(7px);
+}
+.observer-marker {
+  transform: translate(-50%, -50%);
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: rgba(4, 9, 15, 0.76);
+  border: 1px solid rgba(89, 232, 255, 0.32);
+  color: rgba(244, 251, 255, 0.92);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.36);
+  backdrop-filter: blur(5px);
+}
+.visible-pass-legend {
+  color: #ff3df2;
+}
+.toast-area:empty,
+#errorBox:empty {
+  display: none;
+}
+@media (max-width: 760px) {
+  .info-grid a { min-height: 32px; font-size: 9.5px; }
+  .inline-data-status { font-size: 9.5px; }
+  .inline-data-status div { grid-template-columns: 9px 58px minmax(0, 1fr); }
+}

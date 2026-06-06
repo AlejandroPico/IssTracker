@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { NASA_OEM_REFRESH_MS, URLS } from './config.js';
 import { interpolateGeoPoints, normalizeLng, rad2deg, splitAntimeridian, vectorMagnitude } from './utils.js';
 import { renderPaths } from './globe.js';
-import { showToast, updateDataStatus, updateLayerButtons } from './ui.js';
+import { updateDataStatus, updateLayerButtons } from './ui.js';
 
 export async function toggleNasaTrajectory() {
   state.isNasaTrajectoryVisible = !state.isNasaTrajectoryVisible;
@@ -45,10 +45,9 @@ export async function fetchNasaOem(force = false) {
 
   state.nasaOem.loaded = false;
   state.nasaOem.loading = false;
-  state.nasaOem.sourceLabel = 'no disponible desde el navegador';
+  state.nasaOem.sourceLabel = 'no disponible';
   state.nasaOem.error = new Error(errors.join(' | '));
   updateDataStatus();
-  showToast('No se pudo cargar NASA OEM desde el navegador. Se mantiene la órbita TLE como fuente operativa.', 'warn');
   return [];
 }
 
@@ -56,11 +55,17 @@ function buildOemSources() {
   const txt = URLS.nasaOemTxt;
   const xml = URLS.nasaOemXml;
   const proxy = URLS.corsProxyRaw;
+  const proxyAlt = URLS.corsProxyAlt;
+  const proxyIso = URLS.corsProxyIso;
   return [
     { label: 'NASA OEM TXT directo', url: txt, format: 'txt' },
     { label: 'NASA OEM XML directo', url: xml, format: 'xml' },
-    { label: 'NASA OEM TXT vía proxy CORS', url: proxy + encodeURIComponent(txt), format: 'txt' },
-    { label: 'NASA OEM XML vía proxy CORS', url: proxy + encodeURIComponent(xml), format: 'xml' }
+    { label: 'NASA OEM TXT vía AllOrigins', url: proxy + encodeURIComponent(txt), format: 'txt' },
+    { label: 'NASA OEM XML vía AllOrigins', url: proxy + encodeURIComponent(xml), format: 'xml' },
+    { label: 'NASA OEM TXT vía corsproxy.io', url: proxyAlt + encodeURIComponent(txt), format: 'txt' },
+    { label: 'NASA OEM XML vía corsproxy.io', url: proxyAlt + encodeURIComponent(xml), format: 'xml' },
+    { label: 'NASA OEM TXT vía isomorphic-git', url: proxyIso + txt, format: 'txt' },
+    { label: 'NASA OEM XML vía isomorphic-git', url: proxyIso + xml, format: 'xml' }
   ];
 }
 
