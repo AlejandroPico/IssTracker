@@ -55,9 +55,10 @@ export function initGlobe() {
 function configureControls() {
   try {
     const controls = state.world.controls();
-    controls.enableDamping = false;
-    controls.rotateSpeed = 0.45;
-    controls.zoomSpeed = 0.075;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.045;
+    controls.rotateSpeed = 0.42;
+    controls.zoomSpeed = 0.07;
     controls.minDistance = 100.003;
     controls.maxDistance = 1600;
     controls.screenSpacePanning = false;
@@ -68,16 +69,20 @@ function configureControls() {
 
   try {
     const camera = state.world.camera();
-    camera.near = 0.001;
-    camera.far = 8000;
+    camera.near = 0.01;
+    camera.far = 6000;
     camera.updateProjectionMatrix();
   } catch (err) {
     console.warn('No se pudo ajustar la cámara:', err);
   }
 
   try {
-    if (typeof state.world.globeCurvatureResolution === 'function') state.world.globeCurvatureResolution(0.65);
-    if (state.world.globeMaterial && state.world.globeMaterial()) state.world.globeMaterial().bumpScale = 6;
+    if (typeof state.world.globeCurvatureResolution === 'function') state.world.globeCurvatureResolution(0.9);
+    if (typeof state.world.renderer === 'function') {
+      const renderer = state.world.renderer();
+      if (renderer?.setPixelRatio) renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    }
+    if (state.world.globeMaterial && state.world.globeMaterial()) state.world.globeMaterial().bumpScale = 3.5;
   } catch (err) {
     console.warn('No se pudo ajustar el material del globo:', err);
   }
@@ -93,6 +98,14 @@ function createHtmlMarker(d) {
       ev.stopPropagation();
       toggleOrbit();
     });
+  } else if (d && d.kind === 'sun') {
+    el.className = 'celestial-marker sun-marker';
+    el.title = d.title || 'Sol';
+    el.innerHTML = '<span class="sun-glow"></span><span class="celestial-label">Sol</span>';
+  } else if (d && d.kind === 'moon') {
+    el.className = `celestial-marker moon-marker ${d.phaseClass || 'unknown'}`;
+    el.title = d.title || 'Luna';
+    el.innerHTML = `<span class="moon-disc"><span class="moon-shade"></span></span><span class="celestial-label">Luna</span>`;
   }
   return el;
 }
@@ -100,6 +113,8 @@ function createHtmlMarker(d) {
 export function renderIssLayers() {
   if (!state.world) return;
   const htmlData = state.issData ? [state.issData] : [];
+  if (state.isDayNightVisible && state.sunMarker) htmlData.push(state.sunMarker);
+  if (state.isDayNightVisible && state.moonMarker) htmlData.push(state.moonMarker);
   const pointData = [];
   const labelData = [];
 
@@ -109,8 +124,6 @@ export function renderIssLayers() {
   }
   if (state.observerPoint) pointData.push(state.observerPoint);
   if (state.observerLabel) labelData.push(state.observerLabel);
-  if (state.isDayNightVisible && state.sunPoint) pointData.push(state.sunPoint);
-  if (state.isDayNightVisible && state.sunLabel) labelData.push(state.sunLabel);
 
   state.world.htmlElementsData(htmlData);
   state.world.pointsData(pointData);
@@ -124,7 +137,7 @@ export function renderPaths() {
   if (state.showingBorders) {
     paths = paths.concat(state.borderPaths.map(p => ({
       type: 'border',
-      coords: p.coords.map(c => ({ lat: c.lat, lng: c.lng, alt: 0.006 }))
+      coords: p.coords.map(c => ({ lat: c.lat, lng: c.lng, alt: 0.014 }))
     })));
   }
   if (state.isDayNightVisible && state.dayNightPaths.length) paths = paths.concat(state.dayNightPaths);
@@ -139,7 +152,7 @@ export function renderPaths() {
       if (d.type === 'future') return '#20ff46';
       if (d.type === 'nasaPast') return '#ff9f1c';
       if (d.type === 'nasaFuture') return '#b0ff00';
-      if (d.type === 'terminator') return 'rgba(255, 247, 190, 0.92)';
+      if (d.type === 'terminator') return 'rgba(255, 230, 150, 0.82)';
       if (d.type === 'visibility') return '#00ffff';
       if (d.type === 'visiblePass') return '#00aaff';
       return '#ffffff';
@@ -148,7 +161,7 @@ export function renderPaths() {
       if (d.type === 'past' || d.type === 'future' || d.type === 'nasaPast' || d.type === 'nasaFuture') return 0.62;
       if (d.type === 'visiblePass') return 0.56;
       if (d.type === 'visibility') return 0.22;
-      if (d.type === 'terminator') return 0.36;
+      if (d.type === 'terminator') return 0.28;
       return 0.14;
     })
     .pathDashLength(d => (d.type === 'visibility' || d.type === 'terminator') ? 0.035 : 1)
@@ -160,9 +173,8 @@ export function renderPaths() {
 export function renderPolygons() {
   if (!state.world) return;
   const polygons = [];
-  if (state.currentMapType === 'political' && state.countryPolygons.length) {
-    polygons.push(...state.countryPolygons);
-  }
+  // La v2 evita polígonos semitransparentes sobre teselas para reducir parpadeos
+  // y artefactos en modo político/nocturno. Las fronteras se dibujan como paths.
   if (state.isDayNightVisible && state.nightPolygon) polygons.push(state.nightPolygon);
 
   state.world.polygonsData(polygons)

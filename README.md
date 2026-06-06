@@ -2,7 +2,7 @@
 
 Tracker 3D de la Estación Espacial Internacional desarrollado con **HTML**, **CSS**, **JavaScript modular**, **Globe.gl** y **Satellite.js**.
 
-El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción de pasos visibles por ciudad, telemetría, capa día/noche, trayectoria NASA OEM experimental y panel de cámaras en directo.
+El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción de pasos visibles por ciudad, telemetría, capa Sol/Luna, fase lunar, trayectoria NASA OEM experimental y panel de cámaras en directo.
 
 ![Estado](https://img.shields.io/badge/estado-en%20desarrollo-blue)
 ![Frontend](https://img.shields.io/badge/frontend-HTML%20%2B%20CSS%20%2B%20JavaScript-orange)
@@ -36,8 +36,9 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
   - Nocturno.
 - Capa de nubes casi en directo en modo satélite.
 - Fronteras y países opcionales.
-- Capa día/noche con terminador solar y zona nocturna aproximada.
-- Punto subsolar sobre el globo.
+- Capa Sol/Luna con terminador solar aproximado.
+- Marcadores visuales HTML/CSS para Sol y Luna, sin depender de emojis ni labels 3D.
+- Fase lunar aproximada y porcentaje de iluminación en telemetría.
 - Marcador SVG propio para la ISS.
 - Centrado automático y manual sobre la estación.
 - Panel de telemetría:
@@ -122,7 +123,7 @@ iss-tracker-3d/
 | `iss-api.js` | Posición ISS, TLE, propagación orbital y fallback. |
 | `orbit.js` | Órbita TLE pasada/futura. |
 | `passes.js` | Cálculo de pasos visibles por ciudad. |
-| `visibility.js` | Día/noche, terminador solar y círculo de visibilidad. |
+| `visibility.js` | Sol/Luna, fase lunar, terminador solar y círculo de visibilidad. |
 | `nasa-oem.js` | Carga y visualización experimental de trayectoria NASA OEM. |
 | `cameras.js` | Panel flotante de cámaras ISS/NASA. |
 
@@ -188,14 +189,15 @@ Es normal que la emisión pueda mostrar:
 
 ## Sobre la trayectoria NASA OEM
 
-NASA publica la trayectoria de la ISS en formato **CCSDS Orbit Ephemeris Message** (`.txt` y `.xml`). Esta versión intenta cargar el TXT público actual desde navegador y dibujar un tramo cercano al presente.
+NASA publica la trayectoria de la ISS en formato **CCSDS Orbit Ephemeris Message** (`.txt` y `.xml`). Esta versión intenta cargar primero las fuentes oficiales directas y, si el navegador lo bloquea por CORS, prueba una ruta alternativa mediante proxy CORS público.
 
 Notas importantes:
 
-- El formato OEM usa vectores de estado en un marco de referencia técnico.
+- El formato OEM usa vectores de estado en el marco J2000.
 - La conversión visual en navegador se trata como aproximación divulgativa.
 - Si el navegador bloquea la petición o la fuente no responde, el proyecto sigue funcionando con TLE y Satellite.js.
 - El modo TLE sigue siendo la capa operativa principal.
+- El proxy CORS se usa solo como fallback y no debe considerarse infraestructura crítica.
 
 ---
 
@@ -206,14 +208,26 @@ Este proyecto es educativo y visual. No debe usarse para navegación, observaci�
 Limitaciones relevantes:
 
 - La predicción de paso visible es aproximada.
-- El cálculo de sombra terrestre y terminador solar es aproximado.
+- El terminador solar, la subposición lunar y la fase lunar son aproximaciones visuales.
 - El país sobrevolado se calcula con polígonos simplificados.
-- La trayectoria NASA OEM se muestra como capa experimental.
+- La trayectoria NASA OEM se muestra como capa experimental y puede fallar si la fuente oficial o el proxy CORS no responden.
 - Las texturas, teselas, cámaras y APIs dependen de servicios externos.
 - Los directos de YouTube pueden fallar si cambia la política de embebido, la emisión oficial o el origen desde el que se ejecuta la página.
 - El Service Worker solo cachea archivos principales del proyecto, no garantiza disponibilidad offline de APIs ni mapas externos.
 
 ---
+
+## Cambios destacados de la v2
+
+- Eliminado el marcador textual/emoji del Sol que podía aparecer como `?` en algunos navegadores.
+- Añadidos marcadores visuales de Sol y Luna mediante HTML/CSS.
+- Añadida fase lunar aproximada al panel de telemetría.
+- Eliminada la sombra nocturna como polígono semitransparente por defecto para reducir artefactos de renderizado.
+- Conservado el terminador solar como línea más ligera y estable.
+- Reducida la carga visual de polígonos en modo político; las fronteras se renderizan como líneas elevadas para evitar z-fighting.
+- Ajustados parámetros de cámara, bump mapping y resolución del globo para reducir parpadeos.
+- Mejorada la carga NASA OEM con fuentes TXT/XML y fallback por proxy CORS.
+- Actualizado el Service Worker a caché v2.
 
 ## Roadmap sugerido
 

@@ -1,8 +1,8 @@
 import { state } from './state.js';
 import { DAY_NIGHT_REFRESH_MS, EARTH_RADIUS_KM } from './config.js';
-import { circleCoords, circleRingLngLat, deg2rad, normalizeLng, rad2deg } from './utils.js';
+import { circleCoords, deg2rad, normalizeLng, rad2deg } from './utils.js';
 import { renderIssLayers, renderPaths, renderPolygons } from './globe.js';
-import { updateLayerButtons } from './ui.js';
+import { updateLayerButtons, updateTelemetryPanel } from './ui.js';
 
 export function startDayNightTracking() {
   updateDayNightLayers();
@@ -20,37 +20,48 @@ export function updateDayNightLayers(date = new Date()) {
   if (!state.isDayNightVisible) {
     state.dayNightPaths = [];
     state.nightPolygon = null;
-    state.sunPoint = null;
-    state.sunLabel = null;
+    state.sunMarker = null;
+    state.moonMarker = null;
+    state.moonInfo = null;
     renderPolygons();
     renderPaths();
     renderIssLayers();
+    updateTelemetryPanel();
     return;
   }
 
   const sun = getSunSubpoint(date);
-  const antiSun = {
-    lat: -sun.lat,
-    lng: normalizeLng(sun.lng + 180)
-  };
-  const terminator = circleCoords(sun.lat, sun.lng, Math.PI * EARTH_RADIUS_KM / 2, 260, 0.012);
-  const nightRing = circleRingLngLat(antiSun.lat, antiSun.lng, Math.PI * EARTH_RADIUS_KM / 2, 260);
+  const moon = getMoonSubpoint(date, sun.eclipticLongitudeDeg);
 
+  // Usamos solo el terminador como línea. La sombra terrestre mediante polígono grande
+  // causaba artefactos visuales en algunos navegadores al combinarla con teselas y países.
+  const terminator = circleCoords(sun.lat, sun.lng, Math.PI * EARTH_RADIUS_KM / 2, 240, 0.026);
   state.dayNightPaths = [{ type: 'terminator', coords: terminator }];
-  state.nightPolygon = {
-    type: 'Feature',
-    properties: { __kind: 'night' },
-    geometry: {
-      type: 'Polygon',
-      coordinates: [nightRing]
-    }
+  state.nightPolygon = null;
+
+  state.sunMarker = {
+    kind: 'sun',
+    lat: sun.lat,
+    lng: sun.lng,
+    htmlAlt: 0.38,
+    title: 'Sol · punto subsolar aproximado'
   };
-  state.sunPoint = { lat: sun.lat, lng: sun.lng, alt: 0.018, radius: 0.18, color: '#ffd166' };
-  state.sunLabel = { lat: sun.lat, lng: sun.lng, alt: 0.045, text: '☀ Sol', size: 0.52, color: '#fff3b0' };
+  state.moonInfo = moon;
+  state.moonMarker = {
+    kind: 'moon',
+    lat: moon.lat,
+    lng: moon.lng,
+    htmlAlt: 0.30,
+    title: `Luna · ${moon.phaseName} · ${Math.round(moon.illumination * 100)}% iluminada`,
+    phaseClass: moon.phaseClass,
+    phaseName: moon.phaseName,
+    illumination: moon.illumination
+  };
 
   renderPolygons();
   renderPaths();
   renderIssLayers();
+  updateTelemetryPanel();
 }
 
 export function visibilityRadiusKm(altitudeKm, minElevDeg) {
@@ -63,23 +74,85 @@ export function visibilityRadiusKm(altitudeKm, minElevDeg) {
 }
 
 export function getSunSubpoint(date) {
-  const jd = date.getTime() / 86400000 + 2440587.5;
+  const jd = julianDate(date);
   const n = jd - 2451545.0;
   const L = normalizeDegrees(280.460 + 0.9856474 * n);
   const g = normalizeDegrees(357.528 + 0.9856003 * n);
   const lambda = normalizeDegrees(L + 1.915 * Math.sin(deg2rad(g)) + 0.020 * Math.sin(deg2rad(2 * g)));
   const epsilon = 23.439 - 0.0000004 * n;
 
-  const lambdaRad = deg2rad(lambda);
-  const epsilonRad = deg2rad(epsilon);
-  const ra = Math.atan2(Math.cos(epsilonRad) * Math.sin(lambdaRad), Math.cos(lambdaRad));
-  const dec = Math.asin(Math.sin(epsilonRad) * Math.sin(lambdaRad));
+  const eq = eclipticToEquatorial(lambda, 0, epsilon);
   const gmst = greenwichMeanSiderealTimeDeg(jd);
 
   return {
-    lat: rad2deg(dec),
-    lng: normalizeLng(rad2deg(ra) - gmst)
+    lat: eq.decDeg,
+    lng: normalizeLng(eq.raDeg - gmst),
+    eclipticLongitudeDeg: lambda
   };
+}
+
+export function getMoonSubpoint(date, sunEclipticLongitudeDeg = null) {
+  const jd = julianDate(date);
+  const d = jd - 2451545.0;
+
+  // Aproximación ligera, suficiente para visualización: longitud/latitud lunar
+  // con los términos principales de anomalía y argumento de latitud.
+  const L = normalizeDegrees(218.316 + 13.176396 * d);
+  const M = normalizeDegrees(134.963 + 13.064993 * d);
+  const F = normalizeDegrees(93.272 + 13.229350 * d);
+  const lon = normalizeDegrees(L + 6.289 * Math.sin(deg2rad(M)));
+  const lat = 5.128 * Math.sin(deg2rad(F));
+  const epsilon = 23.439 - 0.0000004 * d;
+  const eq = eclipticToEquatorial(lon, lat, epsilon);
+  const gmst = greenwichMeanSiderealTimeDeg(jd);
+
+  const sunLon = sunEclipticLongitudeDeg ?? getSunSubpoint(date).eclipticLongitudeDeg;
+  const elongation = normalizeDegrees(lon - sunLon);
+  const illumination = (1 - Math.cos(deg2rad(elongation))) / 2;
+  const phase = classifyMoonPhase(elongation);
+
+  return {
+    lat: eq.decDeg,
+    lng: normalizeLng(eq.raDeg - gmst),
+    eclipticLongitudeDeg: lon,
+    illumination,
+    elongationDeg: elongation,
+    phaseName: phase.name,
+    phaseClass: phase.className
+  };
+}
+
+function eclipticToEquatorial(lonDeg, latDeg, obliquityDeg) {
+  const lon = deg2rad(lonDeg);
+  const lat = deg2rad(latDeg);
+  const eps = deg2rad(obliquityDeg);
+
+  const sinDec = Math.sin(lat) * Math.cos(eps) + Math.cos(lat) * Math.sin(eps) * Math.sin(lon);
+  const dec = Math.asin(sinDec);
+  const y = Math.sin(lon) * Math.cos(eps) - Math.tan(lat) * Math.sin(eps);
+  const x = Math.cos(lon);
+  const ra = Math.atan2(y, x);
+
+  return {
+    raDeg: normalizeDegrees(rad2deg(ra)),
+    decDeg: rad2deg(dec)
+  };
+}
+
+function classifyMoonPhase(elongationDeg) {
+  const e = normalizeDegrees(elongationDeg);
+  if (e < 22.5 || e >= 337.5) return { name: 'luna nueva', className: 'new' };
+  if (e < 67.5) return { name: 'creciente', className: 'waxing-crescent' };
+  if (e < 112.5) return { name: 'cuarto creciente', className: 'first-quarter' };
+  if (e < 157.5) return { name: 'gibosa creciente', className: 'waxing-gibbous' };
+  if (e < 202.5) return { name: 'luna llena', className: 'full' };
+  if (e < 247.5) return { name: 'gibosa menguante', className: 'waning-gibbous' };
+  if (e < 292.5) return { name: 'cuarto menguante', className: 'last-quarter' };
+  return { name: 'menguante', className: 'waning-crescent' };
+}
+
+function julianDate(date) {
+  return date.getTime() / 86400000 + 2440587.5;
 }
 
 function normalizeDegrees(value) {

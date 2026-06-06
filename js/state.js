@@ -29,8 +29,9 @@ export const state = {
   countryPolygons: [],
   dayNightPaths: [],
   nightPolygon: null,
-  sunPoint: null,
-  sunLabel: null,
+  sunMarker: null,
+  moonMarker: null,
+  moonInfo: null,
 
   observerPoint: null,
   observerLabel: null,

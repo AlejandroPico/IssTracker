@@ -22,6 +22,8 @@ export const URLS = {
   wheretheissTle: `https://api.wheretheiss.at/v1/satellites/${ISS_NORAD_ID}/tles`,
   celestrakTle: `https://celestrak.org/NORAD/elements/gp.php?CATNR=${ISS_NORAD_ID}&FORMAT=TLE`,
   nasaOemTxt: 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.txt',
+  nasaOemXml: 'https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml',
+  corsProxyRaw: 'https://api.allorigins.win/raw?url=',
   countriesGeoJson: 'https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
   openMeteoGeocode: 'https://geocoding-api.open-meteo.com/v1/search',
   issIcon: './assets/icons/iss.svg'

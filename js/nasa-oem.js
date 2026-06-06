@@ -25,29 +25,53 @@ export async function fetchNasaOem(force = false) {
   state.nasaOem.sourceLabel = 'cargando…';
   updateDataStatus();
 
-  try {
-    const res = await fetch(URLS.nasaOemTxt, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    const vectors = parseOemTxt(text);
-    if (!vectors.length) throw new Error('No se encontraron vectores OEM');
-    state.nasaOem.loaded = true;
-    state.nasaOem.loading = false;
-    state.nasaOem.loadedAt = Date.now();
-    state.nasaOem.sourceLabel = 'NASA OEM';
-    state.nasaOem.vectors = vectors;
-    state.nasaOem.error = null;
-    updateDataStatus();
-    return vectors;
-  } catch (err) {
-    state.nasaOem.loaded = false;
-    state.nasaOem.loading = false;
-    state.nasaOem.sourceLabel = 'no disponible desde el navegador';
-    state.nasaOem.error = err;
-    updateDataStatus();
-    showToast('No se pudo cargar la trayectoria NASA OEM. Se mantiene la órbita TLE como fuente operativa.', 'warn');
-    return [];
+  const sources = buildOemSources();
+  const errors = [];
+
+  for (const source of sources) {
+    try {
+      const res = await fetch(source.url, { cache: 'no-store', mode: 'cors' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const vectors = source.format === 'xml' ? parseOemXml(text) : parseOemTxt(text);
+      if (!vectors.length) throw new Error('No se encontraron vectores OEM');
+      setOemSuccess(vectors, source.label);
+      return vectors;
+    } catch (err) {
+      errors.push(`${source.label}: ${err.message}`);
+      console.warn('Fuente NASA OEM fallida:', source.label, err);
+    }
   }
+
+  state.nasaOem.loaded = false;
+  state.nasaOem.loading = false;
+  state.nasaOem.sourceLabel = 'no disponible desde el navegador';
+  state.nasaOem.error = new Error(errors.join(' | '));
+  updateDataStatus();
+  showToast('No se pudo cargar NASA OEM desde el navegador. Se mantiene la órbita TLE como fuente operativa.', 'warn');
+  return [];
+}
+
+function buildOemSources() {
+  const txt = URLS.nasaOemTxt;
+  const xml = URLS.nasaOemXml;
+  const proxy = URLS.corsProxyRaw;
+  return [
+    { label: 'NASA OEM TXT directo', url: txt, format: 'txt' },
+    { label: 'NASA OEM XML directo', url: xml, format: 'xml' },
+    { label: 'NASA OEM TXT vía proxy CORS', url: proxy + encodeURIComponent(txt), format: 'txt' },
+    { label: 'NASA OEM XML vía proxy CORS', url: proxy + encodeURIComponent(xml), format: 'xml' }
+  ];
+}
+
+function setOemSuccess(vectors, sourceLabel) {
+  state.nasaOem.loaded = true;
+  state.nasaOem.loading = false;
+  state.nasaOem.loadedAt = Date.now();
+  state.nasaOem.sourceLabel = sourceLabel;
+  state.nasaOem.vectors = vectors;
+  state.nasaOem.error = null;
+  updateDataStatus();
 }
 
 function parseOemTxt(text) {
@@ -58,26 +82,59 @@ function parseOemTxt(text) {
     if (!/^\d{4}-\d{2}-\d{2}T/.test(line)) continue;
     const parts = line.split(/\s+/);
     if (parts.length < 7) continue;
-    const epoch = new Date(parts[0].replace(/Z?$/, 'Z'));
-    const x = Number(parts[1]);
-    const y = Number(parts[2]);
-    const z = Number(parts[3]);
-    const vx = Number(parts[4]);
-    const vy = Number(parts[5]);
-    const vz = Number(parts[6]);
-    if (![x, y, z, vx, vy, vz].every(Number.isFinite) || Number.isNaN(epoch.getTime())) continue;
-
-    const gmst = satellite.gstime(epoch);
-    const gd = satellite.eciToGeodetic({ x, y, z }, gmst);
-    out.push({
-      epoch,
-      lat: rad2deg(gd.latitude),
-      lng: normalizeLng(rad2deg(gd.longitude)),
-      altitudeKm: gd.height,
-      velocityKmH: vectorMagnitude({ x: vx, y: vy, z: vz }) * 3600
-    });
+    const vector = makeVector(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6]);
+    if (vector) out.push(vector);
   }
   return out;
+}
+
+function parseOemXml(text) {
+  const out = [];
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  const parseError = doc.querySelector('parsererror');
+  if (parseError) throw new Error('XML OEM inválido');
+
+  doc.querySelectorAll('stateVector').forEach(node => {
+    const epoch = textOf(node, 'EPOCH') || textOf(node, 'epoch');
+    const vector = makeVector(
+      epoch,
+      textOf(node, 'X') || textOf(node, 'x'),
+      textOf(node, 'Y') || textOf(node, 'y'),
+      textOf(node, 'Z') || textOf(node, 'z'),
+      textOf(node, 'X_DOT') || textOf(node, 'x_DOT') || textOf(node, 'x_dot'),
+      textOf(node, 'Y_DOT') || textOf(node, 'y_DOT') || textOf(node, 'y_dot'),
+      textOf(node, 'Z_DOT') || textOf(node, 'z_DOT') || textOf(node, 'z_dot')
+    );
+    if (vector) out.push(vector);
+  });
+
+  return out;
+}
+
+function textOf(node, tagName) {
+  const child = node.getElementsByTagName(tagName)[0];
+  return child ? child.textContent.trim() : null;
+}
+
+function makeVector(epochText, xText, yText, zText, vxText, vyText, vzText) {
+  const epoch = new Date(String(epochText || '').replace(/Z?$/, 'Z'));
+  const x = Number(xText);
+  const y = Number(yText);
+  const z = Number(zText);
+  const vx = Number(vxText);
+  const vy = Number(vyText);
+  const vz = Number(vzText);
+  if (![x, y, z, vx, vy, vz].every(Number.isFinite) || Number.isNaN(epoch.getTime())) return null;
+
+  const gmst = satellite.gstime(epoch);
+  const gd = satellite.eciToGeodetic({ x, y, z }, gmst);
+  return {
+    epoch,
+    lat: rad2deg(gd.latitude),
+    lng: normalizeLng(rad2deg(gd.longitude)),
+    altitudeKm: gd.height,
+    velocityKmH: vectorMagnitude({ x: vx, y: vy, z: vz }) * 3600
+  };
 }
 
 export function buildNasaTrajectoryPaths() {
@@ -94,8 +151,8 @@ export function buildNasaTrajectoryPaths() {
 
   for (const v of state.nasaOem.vectors) {
     const t = v.epoch.getTime();
-    if (t >= now - windowMsPast && t <= now) past.push({ lat: v.lat, lng: v.lng, alt: 0.085 });
-    if (t >= now && t <= now + windowMsFuture) future.push({ lat: v.lat, lng: v.lng, alt: 0.085 });
+    if (t >= now - windowMsPast && t <= now) past.push({ lat: v.lat, lng: v.lng, alt: 0.095 });
+    if (t >= now && t <= now + windowMsFuture) future.push({ lat: v.lat, lng: v.lng, alt: 0.095 });
   }
 
   state.nasaTrajectoryPaths = splitAntimeridian(past, 'nasaPast')

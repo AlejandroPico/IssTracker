@@ -26,7 +26,10 @@ export function applyMapAppearance() {
 
   try {
     if (state.world.globeMaterial && state.world.globeMaterial()) {
-      state.world.globeMaterial().bumpScale = state.currentMapType === 'relief' ? 9 : 5;
+      const material = state.world.globeMaterial();
+      material.bumpScale = state.currentMapType === 'relief' ? 4.5 : 2.5;
+      material.depthWrite = true;
+      material.depthTest = true;
     }
   } catch (err) {}
 
@@ -107,7 +110,7 @@ function addBorderRing(ring) {
   if (!Array.isArray(ring) || ring.length < 2) return;
   state.borderPaths.push({
     type: 'border',
-    coords: ring.map(c => ({ lat: c[1], lng: c[0], alt: 0.006 }))
+    coords: ring.map(c => ({ lat: c[1], lng: c[0], alt: 0.014 }))
   });
 }
 

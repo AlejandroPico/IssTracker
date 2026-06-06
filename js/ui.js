@@ -124,7 +124,7 @@ export function updateLayerButtons() {
   }
   if (dayNight) {
     dayNight.classList.toggle('active', state.isDayNightVisible);
-    dayNight.textContent = state.isDayNightVisible ? '☀️ Día/noche: ACTIVADO' : '☀️ Día/noche: DESACTIVADO';
+    dayNight.textContent = state.isDayNightVisible ? '☀︎☾ Sol/Luna: ACTIVADO' : '☀︎☾ Sol/Luna: DESACTIVADO';
   }
   savePreferences();
 }
@@ -163,6 +163,8 @@ export function updateTelemetryPanel() {
   const altitude = Number.isFinite(d.altitudeKm) ? `${Math.round(d.altitudeKm)} km` : '—';
   const visibility = d.visibilityLabel || '—';
   const over = d.overflight || 'Océano / sin país detectado';
+  const moon = state.moonInfo ? `${state.moonInfo.phaseName} · ${Math.round(state.moonInfo.illumination * 100)}%` : '—';
+  const celestial = state.isDayNightVisible ? 'Sol/Luna activo' : 'desactivado';
 
   readout.textContent = `ISS · lat ${d.lat.toFixed(3)} · lng ${d.lng.toFixed(3)} · alt ${Math.round(d.altitudeKm || 420)} km`;
   badge.textContent = d.sourceLabel?.includes('fallback') ? 'DEGRADADO' : 'LIVE';
@@ -175,6 +177,8 @@ export function updateTelemetryPanel() {
     telemetryItem('Sobrevuelo', over),
     telemetryItem('Órbita', '≈ 90 min'),
     telemetryItem('Inclinación', '51,6°'),
+    telemetryItem('Luna', moon),
+    telemetryItem('Capa celeste', celestial),
     telemetryItem('Fuente', d.sourceLabel || '—'),
     telemetryItem('Actualizado', d.updatedAt ? new Intl.DateTimeFormat('es-ES', { timeStyle: 'medium' }).format(d.updatedAt) : '—')
   ].join('');
