@@ -1,6 +1,6 @@
 import { state } from './state.js';
 
-const STORAGE_KEY = 'iss-tracker-3d.preferences.v2';
+const STORAGE_KEY = 'iss-tracker-3d.preferences.v3';
 
 const DEFAULTS = {
   currentMapType: 'satellite',
@@ -8,7 +8,8 @@ const DEFAULTS = {
   showingBorders: false,
   isOrbitVisible: false,
   isNasaTrajectoryVisible: false,
-  isDayNightVisible: true,
+  isNightShadowVisible: false,
+  isSunMoonVisible: false,
   city: 'Barcelona, España',
   minElevation: 10,
   hoursAhead: 72,
@@ -29,7 +30,8 @@ export function loadPreferences() {
   state.showingBorders = Boolean(prefs.showingBorders);
   state.isOrbitVisible = Boolean(prefs.isOrbitVisible);
   state.isNasaTrajectoryVisible = Boolean(prefs.isNasaTrajectoryVisible);
-  state.isDayNightVisible = prefs.isDayNightVisible !== false;
+  state.isNightShadowVisible = Boolean(prefs.isNightShadowVisible);
+  state.isSunMoonVisible = Boolean(prefs.isSunMoonVisible);
   state.camera.activeId = prefs.activeCameraId || 'iss-live';
 
   return prefs;
@@ -42,7 +44,8 @@ export function savePreferences(extra = {}) {
     showingBorders: state.showingBorders,
     isOrbitVisible: state.isOrbitVisible,
     isNasaTrajectoryVisible: state.isNasaTrajectoryVisible,
-    isDayNightVisible: state.isDayNightVisible,
+    isNightShadowVisible: state.isNightShadowVisible,
+    isSunMoonVisible: state.isSunMoonVisible,
     activeCameraId: state.camera.activeId,
     city: document.getElementById('cityInput')?.value || DEFAULTS.city,
     minElevation: Number(document.getElementById('minElevationInput')?.value || DEFAULTS.minElevation),

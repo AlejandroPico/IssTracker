@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { NASA_OEM_REFRESH_MS, URLS } from './config.js';
-import { normalizeLng, rad2deg, splitAntimeridian, vectorMagnitude } from './utils.js';
+import { interpolateGeoPoints, normalizeLng, rad2deg, splitAntimeridian, vectorMagnitude } from './utils.js';
 import { renderPaths } from './globe.js';
 import { showToast, updateDataStatus, updateLayerButtons } from './ui.js';
 
@@ -151,10 +151,32 @@ export function buildNasaTrajectoryPaths() {
 
   for (const v of state.nasaOem.vectors) {
     const t = v.epoch.getTime();
-    if (t >= now - windowMsPast && t <= now) past.push({ lat: v.lat, lng: v.lng, alt: 0.095 });
-    if (t >= now && t <= now + windowMsFuture) future.push({ lat: v.lat, lng: v.lng, alt: 0.095 });
+    if (t >= now - windowMsPast && t <= now) past.push({ lat: v.lat, lng: v.lng, alt: 0.115, epoch: v.epoch });
+    if (t >= now && t <= now + windowMsFuture) future.push({ lat: v.lat, lng: v.lng, alt: 0.115, epoch: v.epoch });
   }
 
-  state.nasaTrajectoryPaths = splitAntimeridian(past, 'nasaPast')
-    .concat(splitAntimeridian(future, 'nasaFuture'));
+  const smoothPast = densifyTrajectory(past);
+  const smoothFuture = densifyTrajectory(future);
+  state.nasaTrajectoryPaths = splitAntimeridian(smoothPast, 'nasaPast')
+    .concat(splitAntimeridian(smoothFuture, 'nasaFuture'));
 }
+
+function densifyTrajectory(points) {
+  if (points.length < 2) return points.map(stripEpoch);
+  const out = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    const dtMinutes = Math.abs(b.epoch - a.epoch) / 60000;
+    const steps = Math.max(2, Math.min(12, Math.round(dtMinutes * 2)));
+    const segment = interpolateGeoPoints(a, b, steps).map(stripEpoch);
+    if (i > 0) segment.shift();
+    out.push(...segment);
+  }
+  return out;
+}
+
+function stripEpoch(point) {
+  return { lat: point.lat, lng: point.lng, alt: point.alt };
+}
+

@@ -73,19 +73,19 @@ export const CLOUD_TEXTURE_URL = 'https://clouds.matteason.co.uk/images/8192x409
 export const CAMERAS = [
   {
     id: 'iss-live',
-    label: 'ISS Live',
+    label: 'ISS',
     videoId: 'uwXgcTc8oY8',
     description: 'Vídeo oficial NASA desde la Estación Espacial Internacional.'
   },
   {
     id: 'earth-hd',
-    label: 'Earth HD',
+    label: 'Tierra',
     videoId: 'FuuC4dpSQ1M',
     description: 'Vistas HD de la Tierra desde una cámara externa de la ISS.'
   },
   {
     id: 'nasa-live',
-    label: 'NASA Live',
+    label: 'NASA',
     videoId: 'P11y8N22Rq0',
     description: 'Canal en directo de NASA para eventos y programación.'
   }

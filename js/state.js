@@ -5,7 +5,8 @@ export const state = {
   showingBorders: false,
   isOrbitVisible: false,
   isNasaTrajectoryVisible: false,
-  isDayNightVisible: true,
+  isNightShadowVisible: false,
+  isSunMoonVisible: false,
   hasAutoCenteredOnIss: false,
 
   issData: null,
@@ -28,7 +29,7 @@ export const state = {
   borderPaths: [],
   countryPolygons: [],
   dayNightPaths: [],
-  nightPolygon: null,
+  nightPolygons: [],
   sunMarker: null,
   moonMarker: null,
   moonInfo: null,

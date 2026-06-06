@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="theme-color" content="#05080d" />
-  <meta name="description" content="Tracker 3D de la Estación Espacial Internacional con órbita, cámaras, telemetría, pasos visibles y capa Sol/Luna." />
+  <meta name="description" content="Tracker 3D de la Estación Espacial Internacional con órbita, cámaras, telemetría, pasos visibles y capas astronómicas opcionales." />
   <title>ISS Tracker 3D</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -37,7 +37,8 @@
       <button id="btnBorders" class="menu-item" type="button">🗺️ Fronteras: DESACTIVADAS</button>
       <button id="btnOrbit" class="menu-item" type="button">🔴🟢 Órbita TLE: DESACTIVADA</button>
       <button id="btnNasaTrajectory" class="menu-item" type="button">🛰️ Trayectoria NASA OEM: DESACTIVADA</button>
-      <button id="btnDayNight" class="menu-item" type="button">☀︎☾ Sol/Luna: ACTIVADO</button>
+      <button id="btnNightShadow" class="menu-item" type="button">🌑 Sombra día/noche: DESACTIVADA</button>
+      <button id="btnSunMoon" class="menu-item" type="button">☀︎☾ Sol/Luna: DESACTIVADO</button>
     </section>
 
     <section class="menu-section compact-controls">
@@ -94,10 +95,8 @@
 
   <section id="cameraPanel" class="camera-panel" aria-label="Panel de cámaras ISS/NASA" hidden>
     <div id="cameraHeader" class="camera-header">
-      <div>
-        <strong>🎥 Cámaras ISS/NASA</strong>
-        <small id="cameraDescription">Vídeo en directo desde fuentes públicas.</small>
-      </div>
+      <div id="cameraTabs" class="camera-tabs" aria-label="Selector de cámaras"></div>
+      <div class="camera-drag-zone" title="Arrastrar ventana"></div>
       <div class="camera-actions">
         <button id="btnCameraRotate" type="button" title="Rotación automática">⟳</button>
         <button id="btnCameraMinimize" type="button" title="Minimizar">—</button>
@@ -105,11 +104,9 @@
       </div>
     </div>
     <div id="cameraBody" class="camera-body">
-      <div id="cameraTabs" class="camera-tabs"></div>
       <div class="video-frame">
         <iframe id="cameraFrame" title="Cámara ISS/NASA" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
-      <p id="cameraNote" class="camera-note">Si la pantalla aparece negra, puede ser porque la ISS está en la zona nocturna o porque la emisión no está disponible temporalmente.</p>
     </div>
   </section>
 

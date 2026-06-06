@@ -226,7 +226,7 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   padding: 2px 8px;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   color: #051014;
   background: var(--green);
@@ -407,49 +407,54 @@ input:focus {
   right: 22px;
   top: 22px;
   z-index: 210;
-  width: min(560px, calc(100vw - 44px));
+  width: min(620px, calc(100vw - 44px));
   min-width: 320px;
-  min-height: 260px;
-  background: var(--panel-strong);
+  min-height: 220px;
+  background: #02040a;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 10px;
   box-shadow: var(--shadow);
   resize: both;
   overflow: hidden;
 }
 .camera-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.055);
+  gap: 8px;
+  min-height: 34px;
+  padding: 4px 6px;
+  background: rgba(8, 12, 18, 0.96);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   cursor: move;
+  touch-action: none;
 }
-.camera-header small {
-  display: block;
-  color: var(--muted);
-  margin-top: 2px;
+.camera-drag-zone {
+  min-width: 18px;
+  height: 24px;
+  cursor: move;
 }
 .camera-actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 .camera-actions button {
-  min-width: 31px;
-  min-height: 30px;
+  min-width: 27px;
+  min-height: 25px;
+  padding: 2px 7px;
   color: var(--text);
+  font-size: 12px;
 }
 .camera-actions button.active {
   background: var(--accent-soft);
   border-color: var(--accent);
 }
 .camera-body {
-  padding: 12px;
+  padding: 0;
 }
 .camera-panel.minimized {
   min-height: 0;
+  height: auto !important;
   resize: none;
 }
 .camera-panel.minimized .camera-body {
@@ -457,22 +462,24 @@ input:focus {
 }
 .camera-tabs {
   display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+  gap: 4px;
+  flex-wrap: nowrap;
+  margin: 0;
 }
 .camera-tabs button {
-  padding: 8px 10px;
-  font-size: 12px;
+  padding: 4px 8px;
+  font-size: 11px;
+  line-height: 1.1;
+  border-radius: 7px;
 }
 .video-frame {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 0;
 }
 .video-frame iframe {
   width: 100%;
@@ -561,8 +568,8 @@ input:focus {
 /* Marcadores celestes v2: sin emojis ni texto 3D para evitar caracteres como '?'. */
 .celestial-marker {
   position: relative;
-  width: 86px;
-  height: 86px;
+  width: 66px;
+  height: 66px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   display: grid;
@@ -571,7 +578,7 @@ input:focus {
 }
 .celestial-label {
   position: absolute;
-  top: 74px;
+  top: 55px;
   left: 50%;
   transform: translateX(-50%);
   padding: 2px 7px;
@@ -586,28 +593,28 @@ input:focus {
   backdrop-filter: blur(6px);
 }
 .sun-glow {
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: radial-gradient(circle at 38% 34%, #fffbe0 0 12%, #ffe178 22%, #ff9f1c 54%, rgba(255, 159, 28, 0.22) 72%, rgba(255, 159, 28, 0) 74%);
   box-shadow:
-    0 0 18px rgba(255, 209, 102, 0.95),
-    0 0 44px rgba(255, 159, 28, 0.78),
-    0 0 92px rgba(255, 122, 24, 0.42);
+    0 0 14px rgba(255, 209, 102, 0.85),
+    0 0 32px rgba(255, 159, 28, 0.55),
+    0 0 70px rgba(255, 122, 24, 0.26);
 }
 .sun-marker::before {
   content: '';
   position: absolute;
-  width: 74px;
-  height: 74px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: 1px solid rgba(255, 209, 102, 0.23);
   box-shadow: 0 0 38px rgba(255, 209, 102, 0.24) inset;
 }
 .moon-disc {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   overflow: hidden;
   background: radial-gradient(circle at 35% 30%, #f6f1de 0 18%, #cfc8b7 52%, #8d877b 100%);
@@ -635,3 +642,5 @@ input:focus {
     50% { transform: scale(1.04); }
   }
 }
+
+.camera-note { display: none; }

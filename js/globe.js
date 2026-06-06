@@ -43,7 +43,7 @@ export function initGlobe() {
     .pathResolution(1)
     .pathTransitionDuration(0)
     .pathDashAnimateTime(0)
-    .polygonAltitude(d => d?.properties?.__kind === 'night' ? 0.004 : 0.002)
+    .polygonAltitude(d => d?.properties?.__kind === 'night' ? (d.properties.__alt || 0.008) : 0.002)
     .polygonsTransitionDuration(0);
 
   configureControls();
@@ -56,11 +56,12 @@ function configureControls() {
   try {
     const controls = state.world.controls();
     controls.enableDamping = true;
-    controls.dampingFactor = 0.045;
-    controls.rotateSpeed = 0.42;
-    controls.zoomSpeed = 0.07;
-    controls.minDistance = 100.003;
-    controls.maxDistance = 1600;
+    controls.dampingFactor = 0.055;
+    controls.rotateSpeed = 0.38;
+    // Zoom más fino: la rueda avanza menos por tick y la cámara no entra en el globo.
+    controls.zoomSpeed = 0.026;
+    controls.minDistance = 101.35;
+    controls.maxDistance = 1900;
     controls.screenSpacePanning = false;
     controls.update();
   } catch (err) {
@@ -69,8 +70,8 @@ function configureControls() {
 
   try {
     const camera = state.world.camera();
-    camera.near = 0.01;
-    camera.far = 6000;
+    camera.near = 0.05;
+    camera.far = 8000;
     camera.updateProjectionMatrix();
   } catch (err) {
     console.warn('No se pudo ajustar la cámara:', err);
@@ -113,8 +114,8 @@ function createHtmlMarker(d) {
 export function renderIssLayers() {
   if (!state.world) return;
   const htmlData = state.issData ? [state.issData] : [];
-  if (state.isDayNightVisible && state.sunMarker) htmlData.push(state.sunMarker);
-  if (state.isDayNightVisible && state.moonMarker) htmlData.push(state.moonMarker);
+  if (state.isSunMoonVisible && state.sunMarker) htmlData.push(state.sunMarker);
+  if (state.isSunMoonVisible && state.moonMarker) htmlData.push(state.moonMarker);
   const pointData = [];
   const labelData = [];
 
@@ -140,7 +141,7 @@ export function renderPaths() {
       coords: p.coords.map(c => ({ lat: c.lat, lng: c.lng, alt: 0.014 }))
     })));
   }
-  if (state.isDayNightVisible && state.dayNightPaths.length) paths = paths.concat(state.dayNightPaths);
+  if (state.isNightShadowVisible && state.dayNightPaths.length) paths = paths.concat(state.dayNightPaths);
   if (state.isOrbitVisible) paths = paths.concat(state.orbitPaths);
   if (state.isNasaTrajectoryVisible) paths = paths.concat(state.nasaTrajectoryPaths);
   if (state.visibilityPaths.length) paths = paths.concat(state.visibilityPaths);
@@ -173,17 +174,15 @@ export function renderPaths() {
 export function renderPolygons() {
   if (!state.world) return;
   const polygons = [];
-  // La v2 evita polígonos semitransparentes sobre teselas para reducir parpadeos
-  // y artefactos en modo político/nocturno. Las fronteras se dibujan como paths.
-  if (state.isDayNightVisible && state.nightPolygon) polygons.push(state.nightPolygon);
+  if (state.isNightShadowVisible && state.nightPolygons.length) polygons.push(...state.nightPolygons);
 
   state.world.polygonsData(polygons)
     .polygonCapColor(d => {
-      if (d?.properties?.__kind === 'night') return 'rgba(0, 8, 20, 0.42)';
+      if (d?.properties?.__kind === 'night') return `rgba(0, 8, 22, ${d.properties.__alpha || 0.16})`;
       return rgbaFromHex(d?.properties?.__color, 0.24);
     })
-    .polygonSideColor(d => d?.properties?.__kind === 'night' ? 'rgba(0, 0, 0, 0.02)' : 'rgba(0,0,0,0.06)')
-    .polygonStrokeColor(d => d?.properties?.__kind === 'night' ? 'rgba(70,170,255,0.10)' : 'rgba(0,0,0,0.58)');
+    .polygonSideColor(d => d?.properties?.__kind === 'night' ? 'rgba(0, 0, 0, 0)' : 'rgba(0,0,0,0.06)')
+    .polygonStrokeColor(d => d?.properties?.__kind === 'night' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.58)');
 }
 
 export function pointOfView(view, duration = 0) {

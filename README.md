@@ -2,7 +2,7 @@
 
 Tracker 3D de la Estación Espacial Internacional desarrollado con **HTML**, **CSS**, **JavaScript modular**, **Globe.gl** y **Satellite.js**.
 
-El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción de pasos visibles por ciudad, telemetría, capa Sol/Luna, fase lunar, trayectoria NASA OEM experimental y panel de cámaras en directo.
+El proyecto muestra la posición aproximada de la ISS en tiempo real sobre un globo interactivo, con mapas de alta resolución, trayectoria orbital, predicción de pasos visibles por ciudad, telemetría, capa de sombra día/noche opcional, Sol/Luna opcionales con fase lunar, trayectoria NASA OEM experimental y panel de cámaras en directo.
 
 ![Estado](https://img.shields.io/badge/estado-en%20desarrollo-blue)
 ![Frontend](https://img.shields.io/badge/frontend-HTML%20%2B%20CSS%20%2B%20JavaScript-orange)
@@ -29,6 +29,7 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - Trayectoria NASA OEM experimental:
   - **Naranja**: tramo pasado OEM.
   - **Verde lima**: tramo futuro OEM.
+- Suavizado visual de la trayectoria OEM mediante interpolación geodésica entre vectores.
 - Cuatro modos visuales de mapa:
   - Satélite.
   - Político.
@@ -36,11 +37,14 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
   - Nocturno.
 - Capa de nubes casi en directo en modo satélite.
 - Fronteras y países opcionales.
-- Capa Sol/Luna con terminador solar aproximado.
+- Capa **Sombra día/noche** independiente y opcional, con oscurecimiento gradual del hemisferio nocturno.
+- Capa **Sol/Luna** independiente y opcional, desactivada por defecto.
+- Sol y Luna situados a mayor altitud visual respecto a la esfera para reducir molestias sobre el mapa.
 - Marcadores visuales HTML/CSS para Sol y Luna, sin depender de emojis ni labels 3D.
-- Fase lunar aproximada y porcentaje de iluminación en telemetría.
+- Fase lunar aproximada y porcentaje de iluminación cuando la capa celeste está activa.
 - Marcador SVG propio para la ISS.
 - Centrado automático y manual sobre la estación.
+- Zoom más gradual y límite de cámara ajustado para evitar entrar dentro de la esfera.
 - Panel de telemetría:
   - Latitud y longitud.
   - Altitud.
@@ -55,8 +59,9 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - Cono aproximado de visibilidad desde la ubicación elegida.
 - Línea del tramo visible previsto de la ISS.
 - Panel flotante de cámaras ISS/NASA:
-  - Fuentes seleccionables.
-  - Ventana arrastrable.
+  - Diseño minimalista centrado en el vídeo.
+  - Selector de cámara integrado en la barra superior.
+  - Ventana arrastrable corregida mediante Pointer Events y `setPointerCapture`.
   - Ventana redimensionable.
   - Modo minimizar.
   - Rotación automática entre cámaras.
@@ -98,9 +103,8 @@ iss-tracker-3d/
 │   └── cameras.js
 │
 ├── assets/
-│   ├── icons/
-│   │   └── iss.svg
-│   └── screenshots/
+│   └── icons/
+│       └── iss.svg
 │
 └── data/
     └── README.md
@@ -115,7 +119,7 @@ iss-tracker-3d/
 | `main.js` | Arranque de la aplicación. |
 | `config.js` | Constantes, URLs, mapas, cámaras y configuración orbital. |
 | `state.js` | Estado compartido de la aplicación. |
-| `utils.js` | Funciones matemáticas, fechas, HTML seguro, geodesia y utilidades. |
+| `utils.js` | Funciones matemáticas, fechas, HTML seguro, geodesia e interpolación. |
 | `storage.js` | Preferencias persistentes en `localStorage`. |
 | `ui.js` | Menú, modales, botones, telemetría, resultados y mensajes. |
 | `globe.js` | Inicialización y renderizado de Globe.gl. |
@@ -123,7 +127,7 @@ iss-tracker-3d/
 | `iss-api.js` | Posición ISS, TLE, propagación orbital y fallback. |
 | `orbit.js` | Órbita TLE pasada/futura. |
 | `passes.js` | Cálculo de pasos visibles por ciudad. |
-| `visibility.js` | Sol/Luna, fase lunar, terminador solar y círculo de visibilidad. |
+| `visibility.js` | Sombra día/noche, Sol/Luna, fase lunar y círculo de visibilidad. |
 | `nasa-oem.js` | Carga y visualización experimental de trayectoria NASA OEM. |
 | `cameras.js` | Panel flotante de cámaras ISS/NASA. |
 
@@ -177,13 +181,9 @@ También puedes usar la extensión **Live Server** de Visual Studio Code.
 
 El panel de cámaras usa reproductores embebidos de YouTube con emisiones públicas relacionadas con NASA/ISS.
 
-Es normal que la emisión pueda mostrar:
+En la v3 se ha simplificado la ventana para que casi todo el espacio lo ocupe el vídeo. La barra superior contiene únicamente selector de cámara, zona de arrastre y botones de rotación, minimizar y cerrar.
 
-- Pantalla negra cuando la ISS está en la zona nocturna de la Tierra.
-- Pantalla gris o cortes temporales si la señal no está disponible.
-- Cambios de cámara realizados por NASA.
-- Sustitución o baja de una emisión si NASA cambia sus directos oficiales.
-- Error de YouTube si se abre el proyecto como `file://` o si el origen no cumple las políticas de embed.
+Es normal que la emisión pueda mostrar pantalla negra, gris, cortes temporales o errores de YouTube si el directo no está disponible, si NASA cambia la emisión o si el proyecto se abre como `file://`.
 
 ---
 
@@ -195,6 +195,7 @@ Notas importantes:
 
 - El formato OEM usa vectores de estado en el marco J2000.
 - La conversión visual en navegador se trata como aproximación divulgativa.
+- Los vectores OEM están más espaciados que la órbita TLE calculada localmente; por eso la v3 interpola puntos intermedios para suavizar la línea.
 - Si el navegador bloquea la petición o la fuente no responde, el proyecto sigue funcionando con TLE y Satellite.js.
 - El modo TLE sigue siendo la capa operativa principal.
 - El proxy CORS se usa solo como fallback y no debe considerarse infraestructura crítica.
@@ -208,7 +209,7 @@ Este proyecto es educativo y visual. No debe usarse para navegación, observaci�
 Limitaciones relevantes:
 
 - La predicción de paso visible es aproximada.
-- El terminador solar, la subposición lunar y la fase lunar son aproximaciones visuales.
+- La sombra día/noche, la subposición lunar y la fase lunar son aproximaciones visuales.
 - El país sobrevolado se calcula con polígonos simplificados.
 - La trayectoria NASA OEM se muestra como capa experimental y puede fallar si la fuente oficial o el proxy CORS no responden.
 - Las texturas, teselas, cámaras y APIs dependen de servicios externos.
@@ -217,17 +218,21 @@ Limitaciones relevantes:
 
 ---
 
-## Cambios destacados de la v2
+## Cambios destacados de la v3
 
-- Eliminado el marcador textual/emoji del Sol que podía aparecer como `?` en algunos navegadores.
-- Añadidos marcadores visuales de Sol y Luna mediante HTML/CSS.
-- Añadida fase lunar aproximada al panel de telemetría.
-- Eliminada la sombra nocturna como polígono semitransparente por defecto para reducir artefactos de renderizado.
-- Conservado el terminador solar como línea más ligera y estable.
-- Reducida la carga visual de polígonos en modo político; las fronteras se renderizan como líneas elevadas para evitar z-fighting.
-- Ajustados parámetros de cámara, bump mapping y resolución del globo para reducir parpadeos.
-- Mejorada la carga NASA OEM con fuentes TXT/XML y fallback por proxy CORS.
-- Actualizado el Service Worker a caché v2.
+- Sol/Luna desactivados por defecto.
+- Separadas las capas **Sombra día/noche** y **Sol/Luna**.
+- Recuperada la sombra nocturna gradual como capa independiente.
+- Eliminada la línea discontinua de terminador solar.
+- Sol y Luna colocados más lejos de la esfera.
+- Panel de cámaras simplificado: barra superior compacta y vídeo como elemento principal.
+- Eliminados título, subtítulo y nota inferior del panel de cámaras.
+- Corregido el arrastre de la ventana de cámaras usando captura de puntero en la cabecera.
+- Zoom más gradual con `zoomSpeed` reducido.
+- Límite mínimo de cámara ajustado para evitar entrar dentro del globo.
+- Trayectoria NASA OEM suavizada mediante interpolación entre vectores.
+- Actualizado `localStorage` a preferencias v3.
+- Actualizado Service Worker a caché v3.
 
 ## Roadmap sugerido
 
@@ -258,10 +263,6 @@ MIT es una licencia abierta y permisiva: permite usar, copiar, modificar y redis
 - WhereTheISS.at API: https://wheretheiss.at/w/developer
 - CelesTrak GP/TLE: https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE
 - NASA Spot The Station: https://www.nasa.gov/spot-the-station/
-- NASA ISS OEM TXT: https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.txt
-- NASA HDEV / ISS live video: https://eol.jsc.nasa.gov/esrs/HDEV/
-- NASA Live: https://www.nasa.gov/live/
+- NASA HDEV / ISS live video: https://eol.jsc.nasa.gov/esrs/hdev/
 - Open-Meteo Geocoding API: https://open-meteo.com/en/docs/geocoding-api
 - YouTube IFrame Player API: https://developers.google.com/youtube/iframe_api_reference
-- Esri ArcGIS map tiles: https://www.arcgis.com/
-- Live Cloud Maps: https://github.com/matteason/live-cloud-maps

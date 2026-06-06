@@ -121,6 +121,45 @@ export function throttle(fn, waitMs) {
   };
 }
 
+export function interpolateGeoPoints(a, b, steps = 6) {
+  if (!a || !b || steps <= 1) return [a, b].filter(Boolean);
+  const lat1 = deg2rad(a.lat);
+  const lon1 = deg2rad(a.lng);
+  const lat2 = deg2rad(b.lat);
+  const lon2 = deg2rad(b.lng);
+
+  const p1 = [Math.cos(lat1) * Math.cos(lon1), Math.cos(lat1) * Math.sin(lon1), Math.sin(lat1)];
+  const p2 = [Math.cos(lat2) * Math.cos(lon2), Math.cos(lat2) * Math.sin(lon2), Math.sin(lat2)];
+  const dot = Math.max(-1, Math.min(1, p1[0] * p2[0] + p1[1] * p2[1] + p1[2] * p2[2]));
+  const omega = Math.acos(dot);
+  const sinOmega = Math.sin(omega);
+  const out = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    let x; let y; let z;
+    if (sinOmega < 1e-8) {
+      x = p1[0] * (1 - t) + p2[0] * t;
+      y = p1[1] * (1 - t) + p2[1] * t;
+      z = p1[2] * (1 - t) + p2[2] * t;
+    } else {
+      const k1 = Math.sin((1 - t) * omega) / sinOmega;
+      const k2 = Math.sin(t * omega) / sinOmega;
+      x = p1[0] * k1 + p2[0] * k2;
+      y = p1[1] * k1 + p2[1] * k2;
+      z = p1[2] * k1 + p2[2] * k2;
+    }
+    const norm = Math.sqrt(x * x + y * y + z * z) || 1;
+    x /= norm; y /= norm; z /= norm;
+    out.push({
+      lat: rad2deg(Math.asin(z)),
+      lng: normalizeLng(rad2deg(Math.atan2(y, x))),
+      alt: a.alt ?? b.alt ?? 0.1
+    });
+  }
+  return out;
+}
+
 export function pointInRing(point, ring) {
   const x = point.lng;
   const y = point.lat;

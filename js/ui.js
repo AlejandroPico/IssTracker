@@ -4,7 +4,7 @@ import { escapeHtml, formatDate, formatDuration, passQuality } from './utils.js'
 import { savePreferences, resetPreferences } from './storage.js';
 import { changeMapType, toggleBorders, toggleClouds } from './maps.js';
 import { toggleOrbit } from './orbit.js';
-import { toggleDayNight } from './visibility.js';
+import { toggleNightShadow, toggleSunMoon } from './visibility.js';
 import { toggleNasaTrajectory } from './nasa-oem.js';
 import { centerOnISS } from './iss-api.js';
 import { calculateVisiblePasses } from './passes.js';
@@ -16,7 +16,8 @@ export function initUI(prefs) {
   bind('btnBorders', 'click', toggleBorders);
   bind('btnOrbit', 'click', toggleOrbit);
   bind('btnNasaTrajectory', 'click', toggleNasaTrajectory);
-  bind('btnDayNight', 'click', toggleDayNight);
+  bind('btnNightShadow', 'click', toggleNightShadow);
+  bind('btnSunMoon', 'click', toggleSunMoon);
   bind('btnCenterIss', 'click', centerOnISS);
   bind('btnOpenPasses', 'click', () => openModal('passModal'));
   bind('btnOpenCameras', 'click', openCameraPanel);
@@ -100,7 +101,8 @@ export function updateLayerButtons() {
   const borders = document.getElementById('btnBorders');
   const orbit = document.getElementById('btnOrbit');
   const nasa = document.getElementById('btnNasaTrajectory');
-  const dayNight = document.getElementById('btnDayNight');
+  const nightShadow = document.getElementById('btnNightShadow');
+  const sunMoon = document.getElementById('btnSunMoon');
 
   if (clouds) {
     const available = state.currentMapType === 'satellite';
@@ -122,9 +124,13 @@ export function updateLayerButtons() {
     nasa.classList.toggle('active', state.isNasaTrajectoryVisible);
     nasa.textContent = state.isNasaTrajectoryVisible ? '🛰️ Trayectoria NASA OEM: ACTIVADA' : '🛰️ Trayectoria NASA OEM: DESACTIVADA';
   }
-  if (dayNight) {
-    dayNight.classList.toggle('active', state.isDayNightVisible);
-    dayNight.textContent = state.isDayNightVisible ? '☀︎☾ Sol/Luna: ACTIVADO' : '☀︎☾ Sol/Luna: DESACTIVADO';
+  if (nightShadow) {
+    nightShadow.classList.toggle('active', state.isNightShadowVisible);
+    nightShadow.textContent = state.isNightShadowVisible ? '🌑 Sombra día/noche: ACTIVADA' : '🌑 Sombra día/noche: DESACTIVADA';
+  }
+  if (sunMoon) {
+    sunMoon.classList.toggle('active', state.isSunMoonVisible);
+    sunMoon.textContent = state.isSunMoonVisible ? '☀︎☾ Sol/Luna: ACTIVADO' : '☀︎☾ Sol/Luna: DESACTIVADO';
   }
   savePreferences();
 }
@@ -164,7 +170,10 @@ export function updateTelemetryPanel() {
   const visibility = d.visibilityLabel || '—';
   const over = d.overflight || 'Océano / sin país detectado';
   const moon = state.moonInfo ? `${state.moonInfo.phaseName} · ${Math.round(state.moonInfo.illumination * 100)}%` : '—';
-  const celestial = state.isDayNightVisible ? 'Sol/Luna activo' : 'desactivado';
+  const celestial = [
+    state.isNightShadowVisible ? 'sombra' : null,
+    state.isSunMoonVisible ? 'Sol/Luna' : null
+  ].filter(Boolean).join(' + ') || 'desactivado';
 
   readout.textContent = `ISS · lat ${d.lat.toFixed(3)} · lng ${d.lng.toFixed(3)} · alt ${Math.round(d.altitudeKm || 420)} km`;
   badge.textContent = d.sourceLabel?.includes('fallback') ? 'DEGRADADO' : 'LIVE';
@@ -178,7 +187,7 @@ export function updateTelemetryPanel() {
     telemetryItem('Órbita', '≈ 90 min'),
     telemetryItem('Inclinación', '51,6°'),
     telemetryItem('Luna', moon),
-    telemetryItem('Capa celeste', celestial),
+    telemetryItem('Capas celestes', celestial),
     telemetryItem('Fuente', d.sourceLabel || '—'),
     telemetryItem('Actualizado', d.updatedAt ? new Intl.DateTimeFormat('es-ES', { timeStyle: 'medium' }).format(d.updatedAt) : '—')
   ].join('');

@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { DAY_NIGHT_REFRESH_MS, EARTH_RADIUS_KM } from './config.js';
-import { circleCoords, deg2rad, normalizeLng, rad2deg } from './utils.js';
+import { circleRingLngLat, deg2rad, normalizeLng, rad2deg } from './utils.js';
 import { renderIssLayers, renderPaths, renderPolygons } from './globe.js';
 import { updateLayerButtons, updateTelemetryPanel } from './ui.js';
 
@@ -10,16 +10,27 @@ export function startDayNightTracking() {
   state.dayNightTimer = setInterval(updateDayNightLayers, DAY_NIGHT_REFRESH_MS);
 }
 
-export function toggleDayNight() {
-  state.isDayNightVisible = !state.isDayNightVisible;
+export function toggleNightShadow() {
+  state.isNightShadowVisible = !state.isNightShadowVisible;
   updateLayerButtons();
   updateDayNightLayers();
 }
 
+export function toggleSunMoon() {
+  state.isSunMoonVisible = !state.isSunMoonVisible;
+  updateLayerButtons();
+  updateDayNightLayers();
+}
+
+// Compatibilidad interna con versiones anteriores: ahora equivale a la sombra día/noche.
+export function toggleDayNight() {
+  toggleNightShadow();
+}
+
 export function updateDayNightLayers(date = new Date()) {
-  if (!state.isDayNightVisible) {
+  if (!state.isNightShadowVisible && !state.isSunMoonVisible) {
     state.dayNightPaths = [];
-    state.nightPolygon = null;
+    state.nightPolygons = [];
     state.sunMarker = null;
     state.moonMarker = null;
     state.moonInfo = null;
@@ -33,35 +44,59 @@ export function updateDayNightLayers(date = new Date()) {
   const sun = getSunSubpoint(date);
   const moon = getMoonSubpoint(date, sun.eclipticLongitudeDeg);
 
-  // Usamos solo el terminador como línea. La sombra terrestre mediante polígono grande
-  // causaba artefactos visuales en algunos navegadores al combinarla con teselas y países.
-  const terminator = circleCoords(sun.lat, sun.lng, Math.PI * EARTH_RADIUS_KM / 2, 240, 0.026);
-  state.dayNightPaths = [{ type: 'terminator', coords: terminator }];
-  state.nightPolygon = null;
+  // La línea de terminador queda eliminada: la capa día/noche vuelve a ser una
+  // sombra gradual y opcional, menos intrusiva que la línea discontinua de v2.
+  state.dayNightPaths = [];
+  state.nightPolygons = state.isNightShadowVisible ? buildNightShadowPolygons(sun) : [];
 
-  state.sunMarker = {
+  state.moonInfo = moon;
+  state.sunMarker = state.isSunMoonVisible ? {
     kind: 'sun',
     lat: sun.lat,
     lng: sun.lng,
-    htmlAlt: 0.38,
+    htmlAlt: 1.18,
     title: 'Sol · punto subsolar aproximado'
-  };
-  state.moonInfo = moon;
-  state.moonMarker = {
+  } : null;
+  state.moonMarker = state.isSunMoonVisible ? {
     kind: 'moon',
     lat: moon.lat,
     lng: moon.lng,
-    htmlAlt: 0.30,
+    htmlAlt: 1.02,
     title: `Luna · ${moon.phaseName} · ${Math.round(moon.illumination * 100)}% iluminada`,
     phaseClass: moon.phaseClass,
     phaseName: moon.phaseName,
     illumination: moon.illumination
-  };
+  } : null;
 
   renderPolygons();
   renderPaths();
   renderIssLayers();
   updateTelemetryPanel();
+}
+
+function buildNightShadowPolygons(sun) {
+  const antiLat = -sun.lat;
+  const antiLng = normalizeLng(sun.lng + 180);
+  const bands = [
+    { radiusKm: Math.PI * EARTH_RADIUS_KM / 2, alpha: 0.18, alt: 0.006 },
+    { radiusKm: Math.PI * EARTH_RADIUS_KM * 0.43, alpha: 0.16, alt: 0.007 },
+    { radiusKm: Math.PI * EARTH_RADIUS_KM * 0.36, alpha: 0.14, alt: 0.008 },
+    { radiusKm: Math.PI * EARTH_RADIUS_KM * 0.29, alpha: 0.10, alt: 0.009 }
+  ];
+
+  return bands.map((band, idx) => ({
+    type: 'Feature',
+    properties: {
+      __kind: 'night',
+      __alpha: band.alpha,
+      __alt: band.alt,
+      __band: idx
+    },
+    geometry: {
+      type: 'Polygon',
+      coordinates: [circleRingLngLat(antiLat, antiLng, band.radiusKm, 240)]
+    }
+  }));
 }
 
 export function visibilityRadiusKm(altitudeKm, minElevDeg) {
