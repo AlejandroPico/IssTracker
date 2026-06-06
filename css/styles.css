@@ -832,3 +832,187 @@ input:focus {
     left: calc(-1 * min(358px, calc(100vw - 30px)) - 10px);
   }
 }
+
+
+/* v6 - Menú compacto, sin descripciones y preparado para móvil */
+.menu-btn {
+  width: 40px;
+  height: 36px;
+  top: 16px;
+  left: 16px;
+  border-radius: 5px;
+}
+.menu-btn span {
+  width: 18px;
+  height: 2px;
+  margin: 1px 0;
+}
+.side-menu {
+  width: 338px;
+  left: -358px;
+  padding: 0 0 22px 0;
+}
+.menu-header.compact-menu-title {
+  min-height: 68px;
+  padding: 16px 18px 13px 70px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(89, 232, 255, 0.12);
+  background:
+    linear-gradient(90deg, rgba(0, 170, 255, 0.08), transparent 58%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 28px);
+}
+.menu-header.compact-menu-title h1 {
+  margin: 0;
+  color: rgba(244, 251, 255, 0.96);
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  line-height: 1;
+}
+.menu-header .eyebrow,
+.menu-header.compact-menu-title p {
+  display: none !important;
+}
+.menu-section {
+  padding: 14px 18px 17px;
+}
+.section-title {
+  margin-bottom: 10px;
+}
+.map-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.map-icon {
+  min-height: 42px;
+  padding: 9px 7px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  line-height: 1.1;
+}
+#mapStatus,
+.small-note#mapStatus {
+  display: none !important;
+}
+#globeViz {
+  touch-action: none;
+}
+.menu-btn,
+.side-menu,
+.modal,
+.camera-panel,
+.status-panel,
+button,
+input {
+  touch-action: manipulation;
+}
+
+@media (max-width: 760px) {
+  .menu-btn {
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    width: 38px;
+    height: 34px;
+  }
+  .side-menu {
+    width: min(338px, calc(100vw - 18px));
+    left: calc(-1 * min(338px, calc(100vw - 18px)) - 10px);
+    max-width: calc(100vw - 18px);
+  }
+  .side-menu.open {
+    left: 0;
+  }
+  .menu-header.compact-menu-title {
+    min-height: 58px;
+    padding: 11px 14px 10px 62px;
+  }
+  .menu-header.compact-menu-title h1 {
+    font-size: 16px;
+  }
+  .menu-section {
+    padding: 12px 14px 15px;
+  }
+  .map-icon,
+  .menu-item {
+    min-height: 42px;
+    font-size: 11px;
+  }
+  .status-panel {
+    left: 8px;
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+    max-height: 36vh;
+    overflow: auto;
+    font-size: 11px;
+  }
+  .telemetry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .telemetry-item {
+    padding: 6px;
+  }
+  .modal {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    padding: 18px;
+  }
+  .modal h2 {
+    font-size: 17px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .pass-table {
+    min-width: 680px;
+  }
+  .camera-panel {
+    top: max(58px, calc(env(safe-area-inset-top) + 50px));
+    left: 8px !important;
+    right: auto;
+    width: calc(100vw - 16px) !important;
+    min-width: 0;
+    min-height: 190px;
+    max-height: calc(100vh - 72px);
+  }
+  .camera-header {
+    grid-template-columns: auto 1fr auto;
+    gap: 5px;
+    min-height: 32px;
+    padding: 3px 5px;
+  }
+  .camera-tabs button,
+  .camera-actions button {
+    min-height: 26px;
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+  .toast-area {
+    right: 8px;
+    left: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .side-menu {
+    width: calc(100vw - 10px);
+    left: calc(-100vw - 10px);
+  }
+  .map-grid {
+    gap: 6px;
+  }
+  .compact-controls {
+    gap: 7px;
+  }
+  .section-title {
+    font-size: 10px;
+  }
+  .data-status {
+    font-size: 10px;
+  }
+}

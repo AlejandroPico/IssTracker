@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iss-tracker-3d-v5';
+const CACHE_NAME = 'iss-tracker-3d-v6';
 const CORE_ASSETS = [
   './',
   './index.html',

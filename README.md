@@ -70,6 +70,18 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - Base PWA con `manifest.webmanifest` y `sw.js`.
 
 
+### Cambios de la v6
+
+- Menú hamburguesa más compacto, con tres barras más juntas y proporción visual más discreta.
+- Cabecera lateral simplificada: se elimina `MISSION CONTROL`, se elimina el subtítulo y queda solo `ISS Tracker`.
+- El título del menú se alinea a la derecha del botón hamburguesa para evitar solapamientos visuales.
+- Eliminadas las descripciones de estado bajo los modos de mapa.
+- Los cuatro modos de apariencia del globo vuelven a mostrarse en una rejilla 2x2, con texto centrado vertical y horizontalmente.
+- Añadida una primera adaptación responsive para móvil: menú más compacto, paneles ajustados al viewport, cámara adaptada a pantalla estrecha y controles táctiles más consistentes.
+- Actualizado `localStorage` a preferencias v6 y Service Worker a caché v6.
+
+
+
 ### Cambios de la v5
 
 - Eliminados los emoticonos del menú lateral, botones de capas, herramientas y estado.

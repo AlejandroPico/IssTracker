@@ -6,7 +6,7 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="theme-color" content="#05080d" />
   <meta name="description" content="Tracker 3D de la Estación Espacial Internacional con órbita, cámaras, telemetría, pasos visibles y capas astronómicas opcionales." />
-  <title>ISS Tracker 3D</title>
+  <title>ISS Tracker</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./assets/icons/iss-top-view.svg" type="image/svg+xml" />
@@ -22,10 +22,8 @@
   </button>
 
   <aside id="sideMenu" class="side-menu" aria-label="Panel de control">
-    <header class="menu-header">
-      <span class="eyebrow">MISSION CONTROL</span>
-      <h1>ISS Tracker 3D</h1>
-      <p>Control de capas, datos y visualización orbital.</p>
+    <header class="menu-header compact-menu-title">
+      <h1>ISS Tracker</h1>
     </header>
 
     <section class="menu-section">
@@ -36,7 +34,6 @@
         <button class="map-icon" type="button" data-map="relief">Relieve</button>
         <button class="map-icon" type="button" data-map="night">Nocturno</button>
       </div>
-      <p id="mapStatus" class="small-note">Satélite activo.</p>
     </section>
 
     <section class="menu-section compact-controls">
@@ -72,7 +69,7 @@
 
   <section id="statusPanel" class="status-panel" aria-label="Telemetría ISS">
     <div class="panel-title-row">
-      <strong>ISS Tracker 3D</strong>
+      <strong>ISS Tracker</strong>
       <span id="liveBadge" class="badge muted">INICIANDO</span>
     </div>
     <div id="issReadout" class="readout">Cargando posición de la ISS…</div>
