@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { DEFAULT_MIN_VISIBLE_ELEVATION_DEG, DEFAULT_PASS_HOURS_AHEAD, EARTH_RADIUS_KM, MAX_PASSES_TO_SHOW, URLS } from './config.js';
+import { DEFAULT_MIN_VISIBLE_ELEVATION_DEG, DEFAULT_PASS_HOURS_AHEAD, EARTH_RADIUS_KM, MAX_PASSES_TO_SHOW, PASS_RESULTS_PAGE_SIZE, URLS } from './config.js';
 import { azimuthToCompass, circleCoords, clamp, deg2rad, escapeHtml, rad2deg, splitAntimeridian } from './utils.js';
 import { getSatrec, getSatelliteSample } from './iss-api.js';
 import { pointOfView, renderIssLayers, renderPaths } from './globe.js';
@@ -28,9 +28,10 @@ export async function calculateVisiblePasses() {
     state.visiblePassLocation = location;
     state.visiblePassMinElevation = minElevation;
     state.selectedVisiblePassIndex = 0;
+    state.visiblePassPage = 0;
     drawObserver(location);
     if (passes[0]) drawVisibility(location, passes[0], minElevation, 0);
-    renderPassResults(location, passes, minElevation, hoursAhead, 0);
+    renderPassResults(location, passes, minElevation, hoursAhead, 0, 0);
     bindPassSelection(location, passes, minElevation, hoursAhead);
   } catch (err) {
     if (result) result.innerHTML = 'No se pudo calcular el paso: ' + escapeHtml(err.message);
@@ -154,7 +155,16 @@ function bindPassSelection(location, passes, minElevation, hoursAhead) {
     const pass = passes[index];
     if (!pass) return;
     drawVisibility(location, pass, minElevation, index);
-    renderPassResults(location, passes, minElevation, hoursAhead, index);
+    renderPassResults(location, passes, minElevation, hoursAhead, index, state.visiblePassPage || 0);
+    bindPassSelection(location, passes, minElevation, hoursAhead);
+  };
+  const changePage = page => {
+    const target = Number(page);
+    if (!Number.isFinite(target) || target < 0) return;
+    const totalPages = Math.max(1, Math.ceil(passes.length / PASS_RESULTS_PAGE_SIZE));
+    if (target >= totalPages) return;
+    state.visiblePassPage = target;
+    renderPassResults(location, passes, minElevation, hoursAhead, state.selectedVisiblePassIndex || 0, target);
     bindPassSelection(location, passes, minElevation, hoursAhead);
   };
   result.querySelectorAll('[data-pass-index]').forEach(el => {
@@ -168,6 +178,14 @@ function bindPassSelection(location, passes, minElevation, hoursAhead) {
         ev.preventDefault();
         select(Number(el.dataset.passIndex));
       }
+    });
+  });
+  result.querySelectorAll('[data-pass-page]').forEach(el => {
+    el.addEventListener('click', ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (el.disabled) return;
+      changePage(el.dataset.passPage);
     });
   });
 }

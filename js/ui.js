@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { DEFAULT_PASS_HOURS_AHEAD, DEFAULT_MIN_VISIBLE_ELEVATION_DEG } from './config.js';
+import { DEFAULT_PASS_HOURS_AHEAD, DEFAULT_MIN_VISIBLE_ELEVATION_DEG, PASS_RESULTS_PAGE_SIZE } from './config.js';
 import { escapeHtml, formatDate, formatDuration, passQuality } from './utils.js';
 import { savePreferences } from './storage.js';
 import { changeMapType, toggleBorders, toggleClouds } from './maps.js';
@@ -90,8 +90,8 @@ export function showError(text) {
   updateDataStatus();
 }
 
-export function showToast(message, type = 'info') {
-  console.debug(`[${type}] ${message}`);
+export function showToast() {
+  // Sin notificaciones visuales ni emergentes: la interfaz se mantiene limpia.
 }
 
 export function updateMapButtons() {
@@ -151,13 +151,23 @@ export function updateDataStatus() {
   const tleOk = Boolean(state.tleSatrec);
   const oemOk = state.nasaOem.loaded;
   const oemLoading = state.nasaOem.loading;
-  const oemState = oemOk
-    ? `${state.nasaOem.vectors.length} vectores`
-    : (oemLoading ? 'cargando' : escapeHtml(state.nasaOem.sourceLabel || 'pendiente'));
+
+  const issDetail = issOk
+    ? `ISS operativa · ${state.issData.sourceLabel || 'fuente activa'}`
+    : 'ISS: inicializando posición en tiempo real.';
+  const tleDetail = tleOk
+    ? `TLE operativo · ${state.tleSourceLabel || 'fuente activa'}`
+    : 'TLE: pendiente de carga.';
+  const oemDetail = oemOk
+    ? `NASA OEM operativo · ${state.nasaOem.vectors.length} vectores · ${state.nasaOem.sourceLabel || 'fuente activa'}`
+    : (oemLoading
+      ? 'NASA OEM: cargando trayectoria oficial.'
+      : `NASA OEM: ${state.nasaOem.error || state.nasaOem.sourceLabel || 'pendiente de carga.'}`);
+
   el.innerHTML = `
-    <div><span class="status-dot ${issOk ? 'ok' : 'pending'}"></span><span>ISS</span><b>${issOk ? escapeHtml(state.issData.sourceLabel || 'activa') : 'iniciando'}</b></div>
-    <div><span class="status-dot ${tleOk ? 'ok' : 'pending'}"></span><span>TLE</span><b>${escapeHtml(state.tleSourceLabel || 'pendiente')}</b></div>
-    <div><span class="status-dot ${oemOk ? 'ok' : (oemLoading ? 'pending' : 'warn')}"></span><span>NASA OEM</span><b>${oemState}</b></div>
+    <div class="data-chip" title="${escapeHtml(issDetail)}"><span class="status-dot ${issOk ? 'ok' : 'pending'}"></span><span>ISS</span></div>
+    <div class="data-chip" title="${escapeHtml(tleDetail)}"><span class="status-dot ${tleOk ? 'ok' : 'pending'}"></span><span>TLE</span></div>
+    <div class="data-chip" title="${escapeHtml(oemDetail)}"><span class="status-dot ${oemOk ? 'ok' : (oemLoading ? 'pending' : 'warn')}"></span><span>NASA OEM</span></div>
   `;
 }
 
@@ -195,7 +205,7 @@ function telemetryItem(label, value) {
   return `<div class="telemetry-item"><span class="telemetry-label">${escapeHtml(label)}</span><span class="telemetry-value" title="${escapeHtml(value)}">${escapeHtml(value)}</span></div>`;
 }
 
-export function renderPassResults(location, passes, minElevation, hoursAhead, selectedIndex = 0) {
+export function renderPassResults(location, passes, minElevation, hoursAhead, selectedIndex = 0, page = 0) {
   const result = document.getElementById('passResult');
   if (!result) return;
   result.hidden = false;
@@ -205,7 +215,13 @@ export function renderPassResults(location, passes, minElevation, hoursAhead, se
     return;
   }
 
-  const rows = passes.map((pass, idx) => {
+  const totalPages = Math.max(1, Math.ceil(passes.length / PASS_RESULTS_PAGE_SIZE));
+  const safePage = Math.min(Math.max(Number(page) || 0, 0), totalPages - 1);
+  const start = safePage * PASS_RESULTS_PAGE_SIZE;
+  const visiblePasses = passes.slice(start, start + PASS_RESULTS_PAGE_SIZE);
+
+  const rows = visiblePasses.map((pass, visibleIdx) => {
+    const idx = start + visibleIdx;
     const q = passQuality(pass.maxElevation);
     const active = idx === selectedIndex ? ' selected' : '';
     return `
@@ -221,6 +237,16 @@ export function renderPassResults(location, passes, minElevation, hoursAhead, se
       </tr>
     `;
   }).join('');
+
+  const prevDisabled = safePage <= 0 ? ' disabled aria-disabled="true"' : '';
+  const nextDisabled = safePage >= totalPages - 1 ? ' disabled aria-disabled="true"' : '';
+  const pagination = totalPages > 1 ? `
+    <div class="pass-pagination" aria-label="Paginación de pasos visibles">
+      <button type="button" class="pass-page-btn" data-pass-page="${safePage - 1}"${prevDisabled} aria-label="Página anterior">‹</button>
+      <span>${safePage + 1} / ${totalPages}</span>
+      <button type="button" class="pass-page-btn" data-pass-page="${safePage + 1}"${nextDisabled} aria-label="Página siguiente">›</button>
+    </div>
+  ` : '';
 
   result.innerHTML = `
     <div class="pass-summary compact-pass-summary">
@@ -244,5 +270,6 @@ export function renderPassResults(location, passes, minElevation, hoursAhead, se
         <tbody>${rows}</tbody>
       </table>
     </div>
+    ${pagination}
   `;
 }

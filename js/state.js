@@ -44,6 +44,7 @@ export const state = {
   visiblePassLocation: null,
   visiblePassMinElevation: 10,
   selectedVisiblePassIndex: 0,
+  visiblePassPage: 0,
 
   orbitTimer: null,
   issTimer: null,

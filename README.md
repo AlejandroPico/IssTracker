@@ -54,8 +54,9 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
   - País o zona sobrevolada aproximada.
 - Cálculo de varios pasos visibles por ciudad.
 - Tabla de pasos futuros con inicio, máximo, fin, duración, elevación, dirección y calidad.
+- Resultados de pasos visibles paginados en bloques de 10 cuando hay muchos resultados.
 - Marcador de ciudad sobre el globo, con etiqueta HTML compatible con acentos y ñ.
-- Línea vertical fina para indicar el punto terrestre de la ciudad y de la ISS.
+- Guías verticales amarillas, más visibles, para indicar el punto terrestre de la ciudad y de la ISS.
 - Cono aproximado de visibilidad desde la ubicación elegida.
 - Línea del tramo visible previsto de la ISS, seleccionable entre varios pasos futuros.
 - Panel flotante de cámaras ISS/NASA:
@@ -71,6 +72,24 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 
 
 
+### Cambios de la v12
+
+- Sección `Información` ampliada a 10 enlaces oficiales en número par: NASA, ISS NASA, ESA, SpaceX, Blue Origin, JAXA, CNSA, ISRO, Arianespace y CSA.
+- `Estado datos` simplificado en una sola fila de tres columnas: ISS, TLE y NASA OEM.
+- Cada indicador de datos muestra solo luz y título; los detalles y errores aparecen en el tooltip al pasar el ratón.
+- Los pasos visibles se paginan en bloques de 10 resultados con controles minimalistas de anterior/siguiente.
+- Service Worker actualizado a caché v12.
+
+### Cambios de la v11
+
+- Guías verticales de ciudad e ISS unificadas en el mismo color amarillo.
+- Guías verticales más gruesas y visibles.
+- La guía vertical de la ISS se renderiza ahora junto al marcador principal mediante la capa de puntos, para quedar anclada y actualizada al mismo ritmo que la estación.
+- Actualización de posición de la ISS más frecuente para reducir la percepción de retraso entre marcador y guía vertical.
+- Sección `Información` revisada: se retira el enlace TLE problemático. En v12 se amplía a enlaces oficiales internacionales y privados del sector espacial.
+- Se mantiene la eliminación de notificaciones emergentes: la app no muestra avisos visuales de arranque ni errores flotantes.
+- Service Worker actualizado a caché v11.
+
 ### Cambios de la v9
 
 - Eliminada la notificación de arranque de la aplicación.
@@ -78,7 +97,7 @@ El proyecto está pensado para funcionar en **GitHub Pages**, **Netlify**, **Ver
 - `Estado datos` vuelve al menú lateral como bloque inferior compacto.
 - Herramientas queda reducido a cuatro acciones: telemetría, centrar ISS, pasos visibles y cámaras NASA.
 - Eliminados los botones `Estado datos` y `Reiniciar` del bloque de herramientas.
-- Añadida sección `Información` con cuatro enlaces breves revisados: NASA, ISS, TLE y Ver ISS.
+- Añadida sección `Información` con enlaces breves a fuentes oficiales. En la v12 se revisan y amplían con organismos y compañías espaciales internacionales.
 - Panel de telemetría sin contenedor exterior: quedan únicamente las cajas de datos.
 - Etiqueta de ubicación corregida mediante marcador HTML para evitar problemas con acentos y `ñ` en el renderizador del globo.
 - La ubicación muestra solo ciudad y país, sin prefijo `Ubicación`.
@@ -327,6 +346,14 @@ MIT es una licencia abierta y permisiva: permite usar, copiar, modificar y redis
 - CelesTrak GP/TLE: https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE
 - NASA Spot The Station: https://www.nasa.gov/spot-the-station/
 - NASA HDEV / ISS live video: https://eol.jsc.nasa.gov/esrs/hdev/
+- ESA: https://www.esa.int/
+- SpaceX: https://www.spacex.com/
+- Blue Origin: https://www.blueorigin.com/
+- JAXA: https://global.jaxa.jp/
+- CNSA: https://www.cnsa.gov.cn/english/
+- ISRO: https://www.isro.gov.in/
+- Arianespace: https://www.arianespace.com/
+- Canadian Space Agency: https://www.asc-csa.gc.ca/eng/
 - Open-Meteo Geocoding API: https://open-meteo.com/en/docs/geocoding-api
 - YouTube IFrame Player API: https://developers.google.com/youtube/iframe_api_reference
 

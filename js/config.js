@@ -4,14 +4,15 @@ export const ORBIT_BACK_MINUTES = 46;
 export const ORBIT_FORWARD_MINUTES = 46;
 export const ORBIT_STEP_SECONDS = 30;
 export const ORBIT_REFRESH_MS = 15000;
-export const ISS_REFRESH_MS = 3000;
+export const ISS_REFRESH_MS = 1000;
 export const TLE_REFRESH_MS = 10 * 60 * 1000;
 export const DAY_NIGHT_REFRESH_MS = 60 * 1000;
 export const NASA_OEM_REFRESH_MS = 6 * 60 * 60 * 1000;
 export const CAMERA_ROTATION_MS = 30 * 1000;
 export const DEFAULT_MIN_VISIBLE_ELEVATION_DEG = 10;
 export const DEFAULT_PASS_HOURS_AHEAD = 72;
-export const MAX_PASSES_TO_SHOW = 8;
+export const MAX_PASSES_TO_SHOW = 50;
+export const PASS_RESULTS_PAGE_SIZE = 10;
 
 export const EMBEDDED_TLE = [
   '1 25544U 98067A   26139.48801487  .00005163  00000+0  10086-3 0  9993',
