@@ -1815,3 +1815,231 @@ input {
     min-height: 29px;
   }
 }
+
+/* v14: identidad del proyecto y ventana Acerca de */
+.menu-header.compact-menu-title {
+  gap: 10px;
+  padding-right: 12px;
+}
+.menu-brand-icon {
+  width: 34px;
+  height: 28px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 7px rgba(89, 232, 255, 0.45));
+}
+.menu-header.compact-menu-title h1 {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.about-menu-btn {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: rgba(234, 248, 255, 0.78);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.about-menu-btn svg {
+  width: 23px;
+  height: 23px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+.about-menu-btn .about-info-dot {
+  fill: currentColor;
+  stroke: none;
+}
+.about-menu-btn:hover,
+.about-menu-btn:focus-visible {
+  color: var(--cyan);
+  background: rgba(89, 232, 255, 0.08);
+  outline: none;
+}
+.about-menu-btn:hover { transform: translateY(-1px); }
+
+.about-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  display: none;
+  place-items: center;
+  padding: 18px;
+  overflow: auto;
+  background: rgba(0, 3, 8, 0.76);
+  backdrop-filter: blur(8px);
+}
+.about-modal.active { display: grid; }
+.about-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  padding: 28px;
+  color: var(--text);
+  background:
+    linear-gradient(135deg, rgba(0, 170, 255, 0.09), transparent 42%),
+    rgba(5, 10, 17, 0.98);
+  border: 1px solid rgba(89, 232, 255, 0.24);
+  border-radius: 6px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.68);
+}
+.about-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: rgba(234, 248, 255, 0.7);
+  border: 0;
+  background: transparent;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+.about-close-btn:hover,
+.about-close-btn:focus-visible {
+  color: var(--cyan);
+  outline: none;
+}
+.about-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 38px;
+}
+.about-identity img {
+  width: 76px;
+  height: 58px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(89, 232, 255, 0.48));
+}
+.about-kicker,
+.about-section-label {
+  display: block;
+  color: var(--cyan);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+.about-card h2 {
+  margin: 5px 0 0;
+  font-size: clamp(23px, 4vw, 34px);
+  line-height: 1.05;
+}
+.about-lead {
+  margin: 22px 0;
+  max-width: 68ch;
+  color: rgba(236, 248, 255, 0.82);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.about-grid section {
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border-top: 1px solid rgba(89, 232, 255, 0.28);
+}
+.about-grid h3 {
+  margin: 8px 0 7px;
+  font-size: 15px;
+}
+.about-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.about-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+.about-links a {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 14px 15px;
+  color: var(--text);
+  text-decoration: none;
+  background: rgba(0, 170, 255, 0.07);
+  border: 1px solid rgba(89, 232, 255, 0.2);
+  border-radius: 4px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.about-links a:hover,
+.about-links a:focus-visible {
+  background: rgba(0, 170, 255, 0.14);
+  border-color: rgba(89, 232, 255, 0.48);
+  outline: none;
+}
+.about-links span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.about-links strong {
+  color: var(--cyan);
+  font-size: 13px;
+}
+.about-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 14px;
+  color: var(--subtle);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+}
+
+@media (max-width: 600px) {
+  .menu-header.compact-menu-title { gap: 7px; }
+  .menu-brand-icon {
+    width: 29px;
+    height: 24px;
+  }
+  .about-modal { padding: 8px; }
+  .about-card {
+    max-height: calc(100vh - 16px);
+    padding: 22px 17px 18px;
+  }
+  .about-identity {
+    gap: 10px;
+    padding-right: 30px;
+  }
+  .about-identity img {
+    width: 52px;
+    height: 42px;
+  }
+  .about-kicker { font-size: 8px; }
+  .about-card h2 { font-size: 22px; }
+  .about-lead {
+    margin: 17px 0;
+    font-size: 12px;
+  }
+  .about-grid,
+  .about-links { grid-template-columns: 1fr; }
+  .about-grid section { padding: 14px; }
+  .about-footer { align-items: flex-end; }
+  .about-footer small { text-align: right; }
+}

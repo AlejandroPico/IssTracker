@@ -22,6 +22,7 @@ export function initUI(prefs) {
   bind('btnCenterIss', 'click', centerOnISS);
   bind('btnOpenPasses', 'click', () => openModal('passModal'));
   bind('btnOpenCameras', 'click', openCameraPanel);
+  bind('btnOpenAbout', 'click', () => openModal('aboutModal'));
   bind('btnCalculatePasses', 'click', calculateVisiblePasses);
 
   document.querySelectorAll('[data-map]').forEach(btn => {
@@ -29,6 +30,9 @@ export function initUI(prefs) {
   });
   document.querySelectorAll('[data-close-modal]').forEach(btn => {
     btn.addEventListener('click', closeModals);
+  });
+  document.getElementById('aboutModal')?.addEventListener('click', event => {
+    if (event.target === event.currentTarget) closeModals();
   });
   document.addEventListener('keydown', ev => {
     if (ev.key === 'Escape') closeModals();
@@ -55,12 +59,19 @@ function bind(id, event, handler) {
 export function openModal(id) {
   closeModals();
   const modal = document.getElementById(id);
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    modal.querySelector('button, a, input')?.focus();
+  }
   document.getElementById('sideMenu')?.classList.remove('open');
 }
 
 export function closeModals() {
-  document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.modal, .about-modal').forEach(modal => {
+    modal.classList.remove('active');
+    if (modal.classList.contains('about-modal')) modal.setAttribute('aria-hidden', 'true');
+  });
 }
 
 function toggleTelemetryPanel() {

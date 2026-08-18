@@ -9,7 +9,7 @@
   <title>ISS Tracker</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" href="./assets/icons/iss-top-view.svg" type="image/svg+xml" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./css/styles.css" />
 
   <script src="https://unpkg.com/globe.gl"></script>
@@ -23,7 +23,15 @@
 
   <aside id="sideMenu" class="side-menu" aria-label="Panel de control">
     <header class="menu-header compact-menu-title">
+      <img class="menu-brand-icon" src="./favicon.svg" alt="" aria-hidden="true" />
       <h1>ISS Tracker</h1>
+      <button id="btnOpenAbout" class="about-menu-btn" type="button" aria-label="Acerca de ISS Tracker" title="Acerca del proyecto">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 10.7v6"></path>
+          <circle cx="12" cy="7.3" r=".75" class="about-info-dot"></circle>
+        </svg>
+      </button>
     </header>
 
     <section class="menu-section">
@@ -118,6 +126,60 @@
       <button id="btnCalculatePasses" class="action-btn" type="button">Calcular pasos</button>
     </div>
     <div id="passResult" class="result-card" hidden></div>
+  </section>
+
+  <section id="aboutModal" class="about-modal" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle" aria-hidden="true">
+    <article class="about-card">
+      <button class="about-close-btn" type="button" data-close-modal aria-label="Cerrar acerca de ISS Tracker">×</button>
+
+      <div class="about-identity">
+        <img src="./favicon.svg" alt="" aria-hidden="true" />
+        <div>
+          <span class="about-kicker">SEGUIMIENTO ORBITAL INTERACTIVO</span>
+          <h2 id="aboutModalTitle">Acerca de ISS Tracker</h2>
+        </div>
+      </div>
+
+      <p class="about-lead">
+        ISS Tracker permite seguir la Estación Espacial Internacional sobre un globo 3D, consultar su telemetría,
+        visualizar trayectorias orbitales y calcular próximos pasos visibles desde cualquier ciudad.
+      </p>
+
+      <div class="about-grid">
+        <section>
+          <span class="about-section-label">EL PROYECTO</span>
+          <h3>La órbita de la ISS, de un vistazo</h3>
+          <p>
+            Una aplicación web técnica y divulgativa que reúne posición, órbita TLE, trayectoria NASA OEM,
+            visibilidad, mapas y cámaras oficiales en una experiencia visual única.
+          </p>
+        </section>
+        <section>
+          <span class="about-section-label">EL AUTOR</span>
+          <h3>Alejandro Pico</h3>
+          <p>
+            Proyecto concebido y desarrollado como parte de una colección de aplicaciones interactivas dedicadas
+            a la tecnología, la ciencia y la divulgación visual.
+          </p>
+        </section>
+      </div>
+
+      <nav class="about-links" aria-label="Enlaces de ISS Tracker">
+        <a href="https://alejandropico.github.io/Portfolio/" target="_blank" rel="noopener noreferrer">
+          <span>Conocer al autor y sus proyectos</span>
+          <strong>Portfolio ↗</strong>
+        </a>
+        <a href="https://github.com/AlejandroPico/IssTracker" target="_blank" rel="noopener noreferrer">
+          <span>Código y documentación del proyecto</span>
+          <strong>GitHub ↗</strong>
+        </a>
+      </nav>
+
+      <footer class="about-footer">
+        <span>ISS TRACKER</span>
+        <small>Diseñado por Alejandro Pico</small>
+      </footer>
+    </article>
   </section>
 
   <section id="cameraPanel" class="camera-panel" aria-label="Panel de cámaras ISS/NASA" hidden>

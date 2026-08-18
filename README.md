@@ -75,6 +75,8 @@ El proyecto está diseñado como una herramienta visual, técnica y divulgativa:
 ### Interfaz
 
 - Menú lateral sobrio, compacto y sin iconografía decorativa.
+- Identidad visual de la ISS en el encabezado y favicon SVG disponible desde la raíz.
+- Ventana «Acerca de» con información del proyecto, autor, repositorio y portfolio.
 - Paneles minimalistas y estilo oscuro técnico.
 - Telemetría sin contenedor exterior, formada por cajas independientes.
 - Scrollbars minimalistas en zonas donde puedan aparecer por resolución reducida.
@@ -130,6 +132,7 @@ El menú incorpora enlaces oficiales y de interés general relacionados con expl
 ```text
 iss-tracker/
 ├── index.html
+├── favicon.svg
 ├── README.md
 ├── LICENSE
 ├── manifest.webmanifest
