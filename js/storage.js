@@ -14,7 +14,7 @@ const DEFAULTS = {
   city: 'Barcelona, España',
   minElevation: 10,
   hoursAhead: 72,
-  activeCameraId: 'iss-live'
+  activeCameraId: 'nasa-hd'
 };
 
 export function loadPreferences() {
@@ -34,7 +34,7 @@ export function loadPreferences() {
   state.isNightShadowVisible = Boolean(prefs.isNightShadowVisible);
   state.isSunMoonVisible = Boolean(prefs.isSunMoonVisible);
   state.isTelemetryVisible = prefs.isTelemetryVisible !== false;
-  state.camera.activeId = prefs.activeCameraId || 'iss-live';
+  state.camera.activeId = prefs.activeCameraId || 'nasa-hd';
 
   return prefs;
 }

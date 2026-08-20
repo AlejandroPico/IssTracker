@@ -52,7 +52,7 @@ export const state = {
   cameraRotateTimer: null,
 
   camera: {
-    activeId: 'iss-live',
+    activeId: 'nasa-hd',
     rotating: false,
     minimized: false
   }

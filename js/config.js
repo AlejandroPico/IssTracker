@@ -76,21 +76,57 @@ export const CLOUD_TEXTURE_URL = 'https://clouds.matteason.co.uk/images/8192x409
 
 export const CAMERAS = [
   {
-    id: 'iss-live',
-    label: 'ISS',
-    videoId: 'uwXgcTc8oY8',
-    description: 'Vídeo oficial NASA desde la Estación Espacial Internacional.'
+    id: 'nasa-hd',
+    label: 'NASA HD',
+    videoId: 'awQzjn72bI0',
+    provider: 'NASA',
+    quality: 'HD',
+    sourceUrl: 'https://www.youtube.com/watch?v=awQzjn72bI0',
+    description: 'Cámara exterior EHDC oficial con vistas de la Tierra y la estructura de la ISS.'
   },
   {
-    id: 'earth-hd',
-    label: 'Tierra',
-    videoId: 'FuuC4dpSQ1M',
-    description: 'Vistas HD de la Tierra desde una cámara externa de la ISS.'
+    id: 'nasa-iss',
+    label: 'NASA ISS',
+    videoId: 'M3HKLzjvKPc',
+    provider: 'NASA',
+    quality: 'HD / SD',
+    sourceUrl: 'https://www.youtube.com/watch?v=M3HKLzjvKPc',
+    description: 'Señal oficial con vistas exteriores, interiores y operaciones de la tripulación.'
   },
   {
-    id: 'nasa-live',
-    label: 'NASA',
-    videoId: 'P11y8N22Rq0',
-    description: 'Canal en directo de NASA para eventos y programación.'
+    id: 'sen-4k',
+    label: 'Sen 4K',
+    videoId: 'fO9e9jnhYK8',
+    provider: 'Sen SpaceTV-1',
+    quality: '4K',
+    sourceUrl: 'https://www.sen.com/live',
+    description: 'Emisión original que alterna tres cámaras 4K: horizonte, nadir y puerto de acoplamiento.'
+  },
+  {
+    id: 'afar-earth',
+    label: 'Afar Tierra',
+    videoId: 'tj4knR4r1UU',
+    provider: 'afarTV',
+    quality: 'HD',
+    sourceUrl: 'https://www.youtube.com/watch?v=tj4knR4r1UU',
+    description: 'Retransmisión continua de las cámaras NASA con gestión de interrupciones.'
+  },
+  {
+    id: 'afar-overview',
+    label: 'Afar Vista',
+    videoId: 'OKQEMp2555A',
+    provider: 'afarTV',
+    quality: 'HD',
+    sourceUrl: 'https://www.youtube.com/watch?v=OKQEMp2555A',
+    description: 'Vista general exterior de la estación y de la Tierra en emisión continua.'
+  },
+  {
+    id: 'launchpad-comms',
+    label: 'ISS + radio',
+    videoId: 'u623YkU-eT4',
+    provider: 'The Launch Pad',
+    quality: '4K',
+    sourceUrl: 'https://www.youtube.com/watch?v=u623YkU-eT4',
+    description: 'Vistas de la ISS acompañadas por comunicaciones entre la estación y tierra.'
   }
 ];

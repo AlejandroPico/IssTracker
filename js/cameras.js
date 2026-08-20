@@ -2,13 +2,25 @@ import { CAMERAS, CAMERA_ROTATION_MS } from './config.js';
 import { state } from './state.js';
 import { savePreferences } from './storage.js';
 
+let youtubeApiPromise = null;
+let cameraPlayer = null;
+let playerReady = false;
+let pendingCamera = null;
+let failoverTimer = null;
+const failedCameraIds = new Set();
+
 export function initCameras() {
   const tabs = document.getElementById('cameraTabs');
   if (!tabs) return;
-  tabs.innerHTML = CAMERAS.map(cam => `<button type="button" data-camera="${cam.id}" title="${cam.description}">${cam.label}</button>`).join('');
+  tabs.innerHTML = CAMERAS.map(cam => `
+    <button type="button" data-camera="${cam.id}" title="${cam.provider}: ${cam.description}">
+      ${cam.label}
+    </button>
+  `).join('');
   tabs.querySelectorAll('[data-camera]').forEach(btn => {
     btn.addEventListener('click', ev => {
       ev.stopPropagation();
+      failedCameraIds.clear();
       selectCamera(btn.dataset.camera);
     });
   });
@@ -17,9 +29,14 @@ export function initCameras() {
   bind('btnCameraClose', 'click', closeCameraPanel);
   bind('btnCameraMinimize', 'click', toggleCameraMinimized);
   bind('btnCameraRotate', 'click', toggleCameraRotation);
+  bind('btnCameraNext', 'click', ev => {
+    ev.stopPropagation();
+    failedCameraIds.clear();
+    selectNextCamera();
+  });
   makeCameraDraggable();
   makeCameraResizable();
-  selectCamera(state.camera.activeId || CAMERAS[0].id, false);
+  selectCamera(state.camera.activeId || CAMERAS[0].id, false, false);
 }
 
 function bind(id, event, handler) {
@@ -39,6 +56,11 @@ export function openCameraPanel() {
 function closeCameraPanel() {
   const panel = document.getElementById('cameraPanel');
   if (panel) panel.hidden = true;
+  try {
+    cameraPlayer?.pauseVideo?.();
+  } catch (err) {
+    console.warn('No se pudo pausar la cámara:', err);
+  }
   stopCameraRotation();
 }
 
@@ -74,17 +96,201 @@ function selectNextCamera() {
   selectCamera(next.id);
 }
 
-function selectCamera(id, persist = true) {
+function selectCamera(id, persist = true, loadVideo = true) {
   const camera = CAMERAS.find(c => c.id === id) || CAMERAS[0];
+  clearTimeout(failoverTimer);
   state.camera.activeId = camera.id;
-  const frame = document.getElementById('cameraFrame');
-  if (frame) {
-    frame.src = `https://www.youtube.com/embed/${camera.videoId}?autoplay=1&mute=1&controls=1&rel=0&playsinline=1&enablejsapi=1`;
-  }
+  pendingCamera = camera;
+  updateCameraDetails(camera);
   document.querySelectorAll('[data-camera]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.camera === camera.id);
+    const active = btn.dataset.camera === camera.id;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', String(active));
   });
   if (persist) savePreferences({ activeCameraId: camera.id });
+  if (loadVideo) loadCameraVideo(camera);
+}
+
+function loadCameraVideo(camera) {
+  setCameraStatus('loading', 'Conectando con la señal…');
+  setCameraLoading(true, `Conectando con ${camera.provider}…`);
+
+  loadYouTubeApi()
+    .then(() => {
+      if (!cameraPlayer) {
+        createCameraPlayer(pendingCamera || camera);
+        return;
+      }
+      if (!playerReady) return;
+      playCamera(pendingCamera || camera);
+    })
+    .catch(err => {
+      console.warn('No se pudo iniciar la API de YouTube; se usa el reproductor básico:', err);
+      loadBasicEmbed(pendingCamera || camera);
+    });
+}
+
+function loadYouTubeApi() {
+  if (window.YT?.Player) return Promise.resolve(window.YT);
+  if (youtubeApiPromise) return youtubeApiPromise;
+
+  youtubeApiPromise = new Promise((resolve, reject) => {
+    const previousReady = window.onYouTubeIframeAPIReady;
+    const timeout = window.setTimeout(() => reject(new Error('Tiempo de espera agotado')), 15000);
+
+    window.onYouTubeIframeAPIReady = () => {
+      window.clearTimeout(timeout);
+      previousReady?.();
+      resolve(window.YT);
+    };
+
+    const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+    if (existing) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://www.youtube.com/iframe_api';
+    script.async = true;
+    script.onerror = () => {
+      window.clearTimeout(timeout);
+      reject(new Error('No se pudo descargar el reproductor'));
+    };
+    document.head.appendChild(script);
+  });
+
+  return youtubeApiPromise;
+}
+
+function createCameraPlayer(camera) {
+  const playerVars = {
+    autoplay: 1,
+    mute: 1,
+    controls: 1,
+    rel: 0,
+    playsinline: 1,
+    modestbranding: 1,
+    iv_load_policy: 3
+  };
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    playerVars.origin = location.origin;
+  }
+
+  cameraPlayer = new window.YT.Player('cameraFrame', {
+    host: 'https://www.youtube-nocookie.com',
+    videoId: camera.videoId,
+    playerVars,
+    events: {
+      onReady: event => {
+        playerReady = true;
+        const selected = pendingCamera || camera;
+        if (selected.videoId !== camera.videoId) {
+          playCamera(selected);
+          return;
+        }
+        event.target.mute();
+        event.target.playVideo();
+      },
+      onStateChange: handlePlayerState,
+      onError: handlePlayerError
+    }
+  });
+}
+
+function playCamera(camera) {
+  try {
+    cameraPlayer.loadVideoById(camera.videoId);
+    cameraPlayer.mute();
+    cameraPlayer.playVideo();
+  } catch (err) {
+    console.warn('No se pudo cambiar la señal:', err);
+    handleUnavailableCamera('No se pudo cargar esta señal');
+  }
+}
+
+function handlePlayerState(event) {
+  const playerState = window.YT?.PlayerState;
+  if (!playerState) return;
+
+  if (event.data === playerState.PLAYING) {
+    failedCameraIds.delete(state.camera.activeId);
+    setCameraLoading(false);
+    setCameraStatus('live', 'En reproducción');
+  } else if (event.data === playerState.BUFFERING || event.data === playerState.CUED) {
+    setCameraLoading(true, 'Sincronizando emisión…');
+    setCameraStatus('loading', 'Sincronizando emisión…');
+  } else if (event.data === playerState.ENDED) {
+    handleUnavailableCamera('La emisión ha finalizado');
+  }
+}
+
+function handlePlayerError(event) {
+  const messages = {
+    2: 'El enlace de la emisión no es válido',
+    5: 'El navegador no puede reproducir esta señal',
+    100: 'La emisión ya no está disponible',
+    101: 'El proveedor no permite integrar esta señal',
+    150: 'El proveedor no permite integrar esta señal',
+    153: 'YouTube no pudo verificar el reproductor integrado'
+  };
+  handleUnavailableCamera(messages[event.data] || 'No se pudo reproducir esta señal');
+}
+
+function handleUnavailableCamera(message) {
+  failedCameraIds.add(state.camera.activeId);
+  setCameraLoading(true, `${message}. Buscando alternativa…`);
+  setCameraStatus('error', message);
+
+  const next = CAMERAS.find(cam => !failedCameraIds.has(cam.id));
+  if (!next) {
+    setCameraLoading(true, 'No hay una señal reproducible ahora mismo. Puedes abrir la fuente original o reintentarlo más tarde.');
+    setCameraStatus('error', 'Todas las señales han rechazado la conexión');
+    return;
+  }
+
+  failoverTimer = window.setTimeout(() => selectCamera(next.id, true), 1600);
+}
+
+function loadBasicEmbed(camera) {
+  const mount = document.getElementById('cameraFrame');
+  if (!mount) return;
+  mount.innerHTML = `<iframe
+    title="${camera.provider}: ${camera.label}"
+    src="https://www.youtube-nocookie.com/embed/${camera.videoId}?autoplay=1&mute=1&controls=1&rel=0&playsinline=1"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  setCameraLoading(false);
+  setCameraStatus('warning', 'Modo compatible · cambia de señal si no responde');
+}
+
+function updateCameraDetails(camera) {
+  const idx = CAMERAS.findIndex(cam => cam.id === camera.id);
+  const name = document.getElementById('cameraSourceName');
+  const position = document.getElementById('cameraSourcePosition');
+  const description = document.getElementById('cameraSourceDescription');
+  const link = document.getElementById('cameraSourceLink');
+
+  if (name) name.textContent = `${camera.provider} · ${camera.quality}`;
+  if (position) position.textContent = `${idx + 1}/${CAMERAS.length}`;
+  if (description) description.textContent = camera.description;
+  if (link) {
+    link.href = camera.sourceUrl;
+    link.setAttribute('aria-label', `Abrir la fuente original de ${camera.provider}`);
+  }
+}
+
+function setCameraStatus(status, message) {
+  const dot = document.getElementById('cameraStatusDot');
+  if (dot) {
+    dot.className = `camera-status-dot ${status}`;
+    dot.title = message;
+  }
+}
+
+function setCameraLoading(visible, message = '') {
+  const loading = document.getElementById('cameraLoading');
+  if (!loading) return;
+  loading.hidden = !visible;
+  if (message) loading.textContent = message;
 }
 
 function makeCameraDraggable() {

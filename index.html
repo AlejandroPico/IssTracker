@@ -187,6 +187,7 @@
       <div id="cameraTabs" class="camera-tabs" aria-label="Selector de cámaras"></div>
       <div class="camera-drag-zone" title="Arrastrar ventana"></div>
       <div class="camera-actions">
+        <button id="btnCameraNext" type="button" title="Siguiente señal" aria-label="Siguiente señal">›</button>
         <button id="btnCameraRotate" type="button" title="Rotación automática" aria-label="Rotación automática">↻</button>
         <button id="btnCameraMinimize" type="button" title="Minimizar" aria-label="Minimizar">—</button>
         <button id="btnCameraClose" type="button" title="Cerrar" aria-label="Cerrar">×</button>
@@ -194,8 +195,20 @@
     </div>
     <div id="cameraBody" class="camera-body">
       <div class="video-frame">
-        <iframe id="cameraFrame" title="Cámara ISS/NASA" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div id="cameraFrame" title="Cámara ISS/NASA"></div>
+        <div id="cameraLoading" class="camera-loading" aria-live="polite">Conectando con la señal…</div>
       </div>
+      <footer class="camera-source-bar">
+        <div class="camera-source-copy">
+          <div class="camera-source-heading">
+            <span id="cameraStatusDot" class="camera-status-dot loading" aria-hidden="true"></span>
+            <strong id="cameraSourceName">Preparando cámara</strong>
+            <span id="cameraSourcePosition" class="camera-source-position"></span>
+          </div>
+          <p id="cameraSourceDescription">Seleccionando la mejor señal disponible.</p>
+        </div>
+        <a id="cameraSourceLink" class="camera-source-link" href="https://www.nasa.gov/" target="_blank" rel="noopener noreferrer">Fuente ↗</a>
+      </footer>
     </div>
   </section>
 
